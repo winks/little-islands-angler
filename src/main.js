@@ -11,6 +11,9 @@ var Game = {
     width: 120,
     height: 40,
     fontSize: 16,
+    statusLines: 3,
+    statusOffsetX: 3,
+    statusOffsetY: 1,
 
     numFish: 3,
     numBoxes: 3,
@@ -26,15 +29,17 @@ var Game = {
     fishTypes: ["salmon", "tuna", "trout"],
 
     bgDefault: "#757358",
+    bgText: "#000",
     bossColor: "#f0f",
     boxColor: "#fff",
     fishColor: "#000",
+    fgText: "#eee",
     playerColor: "#ff0",
     portColor: "#f00",
     waterColor: "#06c",
 
     init: function() {
-        var displayOpt = {width: this.width, height: this.height, fontSize: this.fontSize, bg: this.bgDefault};
+        var displayOpt = {width: this.width, height: this.height+this.statusLines, fontSize: this.fontSize, bg: this.bgDefault};
         this.display = new ROT.Display(displayOpt);
         document.body.appendChild(this.display.getContainer());
         
@@ -49,6 +54,18 @@ var Game = {
 
         console.debug("eoinit ");
         console.debug(this);
+        this._drawStatus();
+    },
+
+    _drawStatus: function() {
+        for(var x=0;x<this.width;x++) {
+            for(var y=this.height;y<this.height+this.statusLines;y++) {
+                this.draw(x, y, " ", this.fgText, this.bgText);
+            }
+        }
+        this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil, this.playerColor, this.bgText);
+        var str = "%b{black}You have %c{green}"+this.player.getEnergy()+"%c{} energy.%b{}";
+        this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
     },
     
     _generateMap: function() {
@@ -173,11 +190,13 @@ var Game = {
 var Player = function(x, y) {
     this._x = x;
     this._y = y;
+    this._energy = 23;
     this._draw();
 };
 Player.prototype.getSpeed = function() { return 100; }
 Player.prototype.getX = function() { return this._x; }
 Player.prototype.getY = function() { return this._y; }
+Player.prototype.getEnergy = function() { return this._energy; }
 
 Player.prototype.act = function() {
     Game.engine.lock();

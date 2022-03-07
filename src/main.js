@@ -3,19 +3,21 @@ var Game = {
     engine: null,
     map: {},
     player: null,
+    boss: null,
     fish: {},
     boxes: [],
     ports: [],
 
-    width: 160,
-    height: 80,
-    fontSize: 12,
+    width: 120,
+    height: 40,
+    fontSize: 16,
 
     numFish: 3,
     numBoxes: 3,
     numPorts: 1,
 
     defaultSigil: " ",
+    bossSigil: "$",
     boxSigil: "!",
     fishSigil: "%",
     playerSigil: "@",
@@ -24,6 +26,7 @@ var Game = {
     fishTypes: ["salmon", "tuna", "trout"],
 
     bgDefault: "#757358",
+    bossColor: "#f0f",
     boxColor: "#fff",
     fishColor: "#000",
     playerColor: "#ff0",
@@ -39,7 +42,7 @@ var Game = {
 
         var scheduler = new ROT.Scheduler.Simple();
         scheduler.add(this.player, true);
-        //scheduler.add(this.pedro, true);
+        //scheduler.add(this.boss, true);
 
         this.engine = new ROT.Engine(scheduler);
         this.engine.start();
@@ -50,7 +53,7 @@ var Game = {
     
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
-        var freeCells = [];
+        var waterCells = [];
         var landCells = [];
         map.randomize(0.5);
         for (var i=0; i<4; i++) map.create();
@@ -63,7 +66,7 @@ var Game = {
                 return;
             }
             this.map[key] = " ";
-            freeCells.push(key);
+            waterCells.push(key);
         }
 
         map.create(digCallback.bind(this));
@@ -74,26 +77,35 @@ var Game = {
         this._generatePorts(landCells);
         this._drawWholeMap();
 
-        this.player = this._createBeing(Player, freeCells);
-        this._generateFish(freeCells);
+        this._generateEntities(waterCells, landCells);
     },
 
-    _createBeing: function(what, freeCells) {
-        var index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
-        var key = freeCells.splice(index, 1)[0];
+    _generateEntities: function(waterCells, landCells) {
+        this.player = this._createBeing(Player, waterCells);
+        this.boss = this._createBeing(Fish, waterCells, ["shark", true]);
+        console.debug("boss", this.boss);
+        this._generateFish(waterCells);
+    },
+
+    _createBeing: function(what, waterCells, args) {
+        var index = Math.floor(ROT.RNG.getUniform() * waterCells.length);
+        var key = waterCells.splice(index, 1)[0];
         var parts = key.split(",");
         var x = parseInt(parts[0]);
         var y = parseInt(parts[1]);
-        return new what(x, y);
+        if (args && args.length > 0) {
+            return new what(x, y, ...args);
+        } else {
+            return new what(x, y);
+        }
     },
 
-    _generateFish: function(freeCells) {
+    _generateFish: function(waterCells) {
         for (var i=0;i<this.numFish;i++) {
-            var f = this._createBeing(Fish, freeCells);
+            var f = this._createBeing(Fish, waterCells);
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
             f._type = this.fishTypes[typeIndex];
             this.fish[i] = f;
-            console.debug(this.fish);
         }
     },
 
@@ -149,6 +161,9 @@ var Game = {
         } else if (sigil == this.portSigil) {
             fgc = this.portColor;
             bgc = this.bgDefault;
+        } else if (sigil == this.bossSigil) {
+            fgc = this.bossColor;
+            bgc = this.waterColor;
         }
         this.display.draw(x, y, sigil, fgc, bgc);
     }
@@ -208,16 +223,25 @@ Player.prototype._draw = function() {
     Game.draw(this._x, this._y, Game.playerSigil, Game.playerColor);
 }
 
-var Fish = function(x, y, type) {
+var Fish = function(x, y, type, isBoss) {
     this._x = x;
     this._y = y;
     this._type = type;
+    this._isBoss = false;
+    if (isBoss === true) {
+        this._isBoss = true;
+    }
     this._draw();
 }
 Fish.prototype.getSpeed = function() { return 100; }
 Fish.prototype.getX = function() { return this._x; }
 Fish.prototype.getY = function() { return this._y; }
 Fish.prototype._draw = function() {
-    console.debug("draw fish ",this);
-    Game.draw(this._x, this._y, Game.fishSigil, Game.fishColor);
+    var sigil = Game.fishSigil;
+    var color = Game.fishColor;
+    if (this._isBoss) {
+        sigil = Game.bossSigil;
+        color = Game.bossColor
+    }
+    Game.draw(this._x, this._y, sigil, color);
 }

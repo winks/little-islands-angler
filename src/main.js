@@ -3,17 +3,22 @@ var Game = {
     engine: null,
     map: {},
     player: null,
+    fish: {},
 
     width: 160,
     height: 80,
     fontSize: 12,
     bgDefault: "#757358",
-    numFish: 10,
+    numFish: 3,
+    numBoxes: 3,
+    fishTypes: ["salmon", "tuna", "trout"],
     fishSigil: "%",
     fishColor: "#000",
     playerSigil: "@",
     playerColor: "#ff0",
     waterColor: "#06c",
+    boxSigil: "!",
+    boxColor: "#fff",
     
     init: function() {
         var displayOpt = {width: this.width, height: this.height, fontSize: this.fontSize, bg: this.bgDefault};
@@ -28,19 +33,25 @@ var Game = {
 
         this.engine = new ROT.Engine(scheduler);
         this.engine.start();
+
+        console.debug("eoinit ");
+        console.debug(this);
     },
     
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
         var freeCells = [];
+        var landCells = [];
         map.randomize(0.5);
         for (var i=0; i<4; i++) map.create();
 
         var digCallback = function(x, y, value) {
-            if (value) { return; }
             //console.debug("cb "+x+","+y+":"+value);
-
             var key = x+","+y;
+            if (value) {
+                landCells.push(key);
+                return;
+            }
             this.map[key] = " ";
             freeCells.push(key);
         }
@@ -49,10 +60,11 @@ var Game = {
         //map.connect(this.display.DEBUG);
         console.debug(map);
 
-        this._generateFish(freeCells);
+        this._generateBoxes(landCells);
         this._drawWholeMap();
 
         this.player = this._createBeing(Player, freeCells);
+        this._generateFish(freeCells);
     },
 
     _createBeing: function(what, freeCells) {
@@ -66,13 +78,23 @@ var Game = {
 
     _generateFish: function(freeCells) {
         for (var i=0;i<this.numFish;i++) {
-            var index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
-            var key = freeCells.splice(index, 1)[0];
-            this.map[key] = this.fishSigil;
-            console.debug(key)
+            var f = this._createBeing(Fish, freeCells);
+            var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
+            f._type = this.fishTypes[typeIndex];
+            this.fish[i] = f;
+            console.debug(this.fish);
         }
     },
-    
+
+    _generateBoxes: function(landCells) {
+        for (var i=0;i<this.numBoxes;i++) {
+            var index = Math.floor(ROT.RNG.getUniform() * landCells.length);
+            var key = landCells.splice(index, 1)[0];
+            this.map[key] = this.boxSigil;
+            //console.debug(key)
+        }
+    },
+
     _drawWholeMap: function() {
         for (var key in this.map) {
             var parts = key.split(",");
@@ -88,11 +110,17 @@ var Game = {
         var bgc = this.waterColor;
         if (fgc_ != null) fgc = fgc_;
         if (bgc_ != null) bgc = bgc_;
+
         if (sigil == this.playerSigil) {
             fgc = this.playerColor;
             bgc = this.waterColor;
         } else if (sigil == this.fishSigil) {
             fgc = this.fishColor;
+            bgc = this.waterColor;
+            console.debug("df",x,y, sigil, fgc, bgc);
+        } else if (sigil == this.boxSigil) {
+            fgc = this.boxColor;
+            bgc = this.bgDefault;
         }
         this.display.draw(x, y, sigil, fgc, bgc);
     }
@@ -150,4 +178,18 @@ Player.prototype.handleEvent = function(e) {
 
 Player.prototype._draw = function() {
     Game.draw(this._x, this._y, Game.playerSigil, Game.playerColor);
+}
+
+var Fish = function(x, y, type) {
+    this._x = x;
+    this._y = y;
+    this._type = type;
+    this._draw();
+}
+Fish.prototype.getSpeed = function() { return 100; }
+Fish.prototype.getX = function() { return this._x; }
+Fish.prototype.getY = function() { return this._y; }
+Fish.prototype._draw = function() {
+    console.debug("draw fish ",this);
+    Game.draw(this._x, this._y, Game.fishSigil, Game.fishColor);
 }

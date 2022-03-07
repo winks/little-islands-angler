@@ -7,8 +7,6 @@ var Player = function(x, y) {
     this._dexterity = 10;
     this._currency = 0;
     this._draw();
-
-    this.s("  ");
 };
 Player.prototype.getSpeed = function() { return 100; }
 Player.prototype.getX = function() { return this._x; }
@@ -102,32 +100,20 @@ Player.prototype._draw = function() {
 }
 
 Player.prototype._usePort = function() {
-    var dirs = ROT.DIRS[4];
-
-    for (var i=0; i<dirs.length; i++) {
-        var dir =  dirs[i];
-        var newX = this._x + dir[0];
-        var newY = this._y + dir[1];
-        var newKey = newX+","+newY;
-        var where = Game.ent[newKey];
-        if (where == undefined) continue;
-        for (let w of where) {
-            if (w._type == Game.portSigil) {
-                console.debug("A PORT");
-                var str = "You try to dock at the port.";
-                if (this._currency >= Game.volCurrencyToExit) {
-                    str += " You pay "+Game.volCurrencyToExit+" in fees."
-                    this._currency -= Game.volCurrencyToExit;
-                    Game.levelFinished = true;
-                } else {
-                    str += " You don't have the "+Game.volCurrencyToExit+" rations to pay the fees."
-                }
-                Game.toast = str;
-                return true;
-            }
+    var cb = function(what) {
+        console.debug("A PORT");
+        var str = "You try to dock at the port.";
+        if (this._currency >= Game.volCurrencyToExit) {
+            str += " You pay "+Game.volCurrencyToExit+" in fees."
+            this._currency -= Game.volCurrencyToExit;
+            Game.levelFinished = true;
+        } else {
+            str += " You don't have the "+Game.volCurrencyToExit+" rations to pay the fees."
         }
-    }
-    return false;
+        Game.toast = str;
+        return true;
+    };
+    return this._interact(Game.portSigil, cb.bind(this));
 }
 
 Player.prototype._openBox = function() {
@@ -273,7 +259,7 @@ Player.prototype._encounter = function(enemy) {
     } else {
         this._currency += 2;
     }
-    Game.remove(enemy);
+    Game.removeEnemy(enemy);
     return true;
 }
 

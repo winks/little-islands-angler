@@ -1,17 +1,23 @@
 var Game = {
     display: null,
     engine: null,
-    // key = "x,y" | value = sigil
+    // key = "x,y"
     map: {},
     // entities
     player: null,
     boss: null,
     fish: {},
-    // just map keys
     ent: {},
+    // just map keys
     landCells: [],
     waterCells: [],
     toast: "",
+    treasures: {
+        "tome_str": [],
+        "tome_dex": [],
+        "ration": [],
+        "nothing": []
+    },
 
     // general game params
     width: 86,
@@ -194,7 +200,19 @@ var Game = {
                 if (!(key in this.ent)) {
                     this.ent[key] = [];
                 }
-                this.ent[key].push(new Site(xyk[0], xyk[1], this.boxSigil));
+                var boxPerc = ROT.RNG.getPercentage();
+                var treasure = null;
+                if (boxPerc <= 5) {
+                    treasure = "tome_str";
+                } else if (boxPerc <= 10) {
+                    treasure = "tome_dex";
+                } else if (boxPerc <= 50) {
+                    treasure = "ration";
+                } else {
+                    treasure = null;
+                }
+                var id = "bo"+i;
+                this.ent[key].push(new Site(xyk[0], xyk[1], id, this.boxSigil, treasure));
                 break;
             }
         }
@@ -217,7 +235,8 @@ var Game = {
                 if (!(key in this.ent)) {
                     this.ent[key] = [];
                 }
-                this.ent[key].push(new Site(xyk[0], xyk[1], this.portSigil));
+                var id = "po"+i;
+                this.ent[key].push(new Site(xyk[0], xyk[1], id, this.portSigil));
                 break;
             }
         }
@@ -232,7 +251,8 @@ var Game = {
                     if (!(key in this.ent)) {
                         this.ent[key] = [];
                     }
-                    this.ent[key].push(new Site(xyk[0], xyk[1], this.doorSigil));
+                    var id = "do"+i;
+                    this.ent[key].push(new Site(xyk[0], xyk[1], id, this.doorSigil));
                     break;
                 }
             }
@@ -287,6 +307,18 @@ var Game = {
 
     remove: function(fish) {
         delete this.fish[fish._id];
+    },
+
+    emptyBox: function(id) {
+        for (let k of Object.keys(this.ent)) {
+            console.debug(k);
+            for (let i in this.ent[k]) {
+                if (this.ent[k][i]._id == id) {
+                    this.ent[k][i]._contents = null;
+                    console.debug("The box at "+this.ent[k][i].s()+" is now empty.");
+                }
+            }
+        }
     },
 
     _drawWholeMap: function() {
@@ -395,10 +427,12 @@ Fish.prototype.k = function() {
     return this._x+","+this._y;
 }
 
-var Site = function(x, y, type) {
+var Site = function(x, y, id, type, contents) {
     this._x = x;
     this._y = y;
+    this._id = id;
     this._type = type;
+    this._contents = contents;
     this._draw();
 }
 
@@ -407,7 +441,7 @@ Site.prototype.k = function() {
 }
 
 Site.prototype.s = function() {
-    return "[Site: "+this._type+ "@ ("+this.k()+")";
+    return "[Site: "+this._type+ " @ ("+this.k()+")";
 }
 
 Site.prototype._draw = function() {

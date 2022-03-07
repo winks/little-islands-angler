@@ -40,7 +40,19 @@ Player.prototype.handleEvent = function(ev) {
     }
     // space for fishing
     if (code == 32) {
-        this._startEncounter();
+        var rv = this._startEncounter();
+        if (rv) {
+            Game.updS();
+            window.removeEventListener("keydown", this);
+            Game.engine.unlock();
+            return;
+        }
+        rv = this._openBox();
+        if (rv) {
+            Game.updS();
+            window.removeEventListener("keydown", this);
+            Game.engine.unlock();
+        }
         return;
     }
     // e to eat
@@ -116,16 +128,58 @@ Player.prototype._usePort = function() {
     return false;
 }
 
+Player.prototype._openBox = function() {
+    var cb = function(what) {
+        console.debug("A BOX ("+what.s()+") "+this.s());
+        var str = "You try to open the box.";
+        this._energy -= 1;
+        if (!what._contents || what._contents == "nothing") {
+            str += " You find nothing in it.";
+        } else if (what._contents == "tome_str") {
+            str += " You find a tome of strength!";
+            this._strength += 1;
+        } else if (what._contents == "tome_dex") {
+            str += " You find a tome of dexterity!";
+            this._dexterity += 1;
+        } else if (what._contents == "ration") {
+            str += " You find a ration of fish.";
+            this._currency += 1;
+        }
+        console.debug("A BOX END"+this.s());
+        Game.emptyBox(what._id);
+        Game.toast = str;
+        return true;
+    };
+    return this._interact(Game.boxSigil, cb.bind(this));
+}
+
+Player.prototype._interact = function(checkType, callbackFn) {
+    var dirs = ROT.DIRS[4];
+
+    for (var i=0; i<dirs.length; i++) {
+        var dir =  dirs[i];
+        var newX = this._x + dir[0];
+        var newY = this._y + dir[1];
+        var newKey = newX+","+newY;
+        var where = Game.ent[newKey];
+        if (where == undefined) continue;
+        for (let w of where) {
+            if (w._type == checkType) {
+                return callbackFn(w);
+            }
+        }
+    }
+    return false;
+}
+
 Player.prototype._startEncounter = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
     if (fi !== false) {
         var f = Game.fish[fi];
         console.debug("! "+f.s());
-        this._encounter(f);
-        window.removeEventListener("keydown", this);
-        Game.engine.unlock();
-        return;
+        return this._encounter(f);
     }
+    return false;
 }
 
 Player.prototype.s = function(prefix, suffix) {
@@ -174,11 +228,11 @@ Player.prototype._encounter = function(enemy) {
                         continue;
                     } else {
                         console.debug("!! Fatal TODO");
-                        return;
+                        return true;
                     }
                 } else {
                     console.debug("!! WTF");
-                    return;
+                    return true;
                 }
             } else {
                 continue;
@@ -190,7 +244,7 @@ Player.prototype._encounter = function(enemy) {
                 continue;
             } else {
                 console.debug("!! Fish got away "+hookPerc+"/50");
-                return;
+                return true;
             }
         } else if (dexDiff == -1 || dexDiff == -2) {
             var hookPerc = ROT.RNG.getPercentage();
@@ -199,11 +253,11 @@ Player.prototype._encounter = function(enemy) {
                 continue;
             } else {
                 console.debug("!! Fish got away "+hookPerc+"/20");
-                return;
+                return true;
             }
         } else {
             console.debug("!! Fish too strong");
-            return;
+            return true;
         }
     }
     console.debug("!! post. success:"+success);
@@ -215,6 +269,7 @@ Player.prototype._encounter = function(enemy) {
     }
     Game.remove(enemy);
     Game.update();
+    return true;
 }
 
 Player.prototype._fillEnergy = function() {

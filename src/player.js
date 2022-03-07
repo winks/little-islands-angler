@@ -22,12 +22,10 @@ Player.prototype.act = function() {
 }
 
 Player.prototype.handleEvent = function(ev) {
-    var code = ev.keyCode;
-    // @TODO keyCode -> key
-    //console.debug("event: "+code+" "+e.key+" "+e.code);
+    var code = ev.code;
 
-    // enter to finish level
-    if (code == 13) {
+    // enter to finish level, keyCode 13
+    if (code == "Enter" || code == "NumpadEnter") {
         var rv = this._usePort();
         if (rv) {
             Game.updS();
@@ -36,8 +34,8 @@ Player.prototype.handleEvent = function(ev) {
         }
         return;
     }
-    // space for fishing
-    if (code == 32) {
+    // space for fishing and boxes, keyCode 32
+    if (code == "Space") {
         var rv = this._startEncounter();
         if (rv) {
             Game.updS();
@@ -53,8 +51,8 @@ Player.prototype.handleEvent = function(ev) {
         }
         return;
     }
-    // e to eat
-    if (code == 69) {
+    // e to eat, keyCode 69
+    if (code == "KeyE") {
         var rv = this._fillEnergy();
         if (rv) {
             Game.updS();
@@ -66,14 +64,22 @@ Player.prototype.handleEvent = function(ev) {
 
     // arrow keys and NUMPAD
     var keyMap = {};
-    keyMap[38] = 0;
-    keyMap[33] = 1;
-    keyMap[39] = 2;
-    keyMap[34] = 3;
-    keyMap[40] = 4;
-    keyMap[35] = 5;
-    keyMap[37] = 6;
-    keyMap[36] = 7;
+    keyMap["ArrowUp"]   = 0; // 38
+    keyMap["Numpad8"]   = 0;
+    keyMap["PageUp"]    = 1; // 33
+    keyMap["Numpad9"]   = 1;
+    keyMap["ArrowRight"]= 2; // 39
+    keyMap["Numpad6"]   = 2;
+    keyMap["PageDown"]  = 3; // 34
+    keyMap["Numpad3"]   = 3;
+    keyMap["ArrowDown"] = 4; // 40
+    keyMap["Numpad2"]   = 4;
+    keyMap["End"]       = 5; // 35
+    keyMap["Numpad1"]   = 5;
+    keyMap["ArrowLeft"] = 6; // 37
+    keyMap["Numpad4"]   = 6;
+    keyMap["Home"]      = 7; // 36
+    keyMap["Numpad7"]   = 7;
 
     /* one of numpad directions? */
     if (!(code in keyMap)) { return; }

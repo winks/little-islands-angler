@@ -1,13 +1,20 @@
 var Game = {
     display: null,
     engine: null,
+    // key = "x,y" | value = sigil
     map: {},
+    // entities
     player: null,
     boss: null,
     fish: {},
+    // just map keys
     boxes: [],
     ports: [],
+    doors: [],
+    landCells: [],
+    waterCells: [],
 
+    // general game params
     width: 120,
     height: 40,
     fontSize: 16,
@@ -18,10 +25,13 @@ var Game = {
     numFish: 3,
     numBoxes: 3,
     numPorts: 1,
+    numDoors: 0,
 
+    // sigils
     defaultSigil: " ",
     bossSigil: "$",
     boxSigil: "!",
+    doorSigil: "^",
     fishSigil: "%",
     playerSigil: "@",
     portSigil: "#",
@@ -32,10 +42,13 @@ var Game = {
     bgText: "#000",
     bossColor: "#f0f",
     boxColor: "#fff",
+    doorColor: "#fff",
+    doorBgColor: "#00f",
     fishColor: "#000",
     fgText: "#eee",
     playerColor: "#ff0",
     portColor: "#f00",
+    portBgColor: "#4d2600",
     waterColor: "#06c",
 
     init: function() {
@@ -70,8 +83,6 @@ var Game = {
     
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
-        var waterCells = [];
-        var landCells = [];
         map.randomize(0.5);
         for (var i=0; i<4; i++) map.create();
 
@@ -79,22 +90,23 @@ var Game = {
             //console.debug("cb "+x+","+y+":"+value);
             var key = x+","+y;
             if (value) {
-                landCells.push(key);
+                this.landCells.push(key);
                 return;
             }
-            this.map[key] = " ";
-            waterCells.push(key);
+            this.map[key] = this.defaultSigil;
+            this.waterCells.push(key);
         }
 
         map.create(digCallback.bind(this));
         //map.connect(this.display.DEBUG);
-        console.debug(map);
+        console.debug("map", map);
 
-        this._generateBoxes(landCells);
-        this._generatePorts(landCells);
+        this._generateBoxes(this.landCells, this.waterCells);
+        this._generatePorts(this.landCells, this.waterCells);
+        this._generateDoors(this.waterCells);
         this._drawWholeMap();
 
-        this._generateEntities(waterCells, landCells);
+        this._generateEntities(this.waterCells, this.landCells);
     },
 
     _generateEntities: function(waterCells, landCells) {
@@ -105,48 +117,114 @@ var Game = {
     },
 
     _createBeing: function(what, waterCells, args) {
-        var index = Math.floor(ROT.RNG.getUniform() * waterCells.length);
-        var key = waterCells.splice(index, 1)[0];
-        var parts = key.split(",");
-        var x = parseInt(parts[0]);
-        var y = parseInt(parts[1]);
+        var xyk = this._getRandPos(waterCells);
         if (args && args.length > 0) {
-            return new what(x, y, ...args);
+            return new what(xyk[0], xyk[1], ...args);
         } else {
-            return new what(x, y);
+            return new what(xyk[0], xyk[1]);
         }
     },
 
     _generateFish: function(waterCells) {
         for (var i=0;i<this.numFish;i++) {
             var f = this._createBeing(Fish, waterCells);
+            // randomize fish type
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
             f._type = this.fishTypes[typeIndex];
             this.fish[i] = f;
         }
     },
 
-    _generateBoxes: function(landCells) {
-        for (var i=0;i<this.numBoxes;i++) {
-            var index = Math.floor(ROT.RNG.getUniform() * landCells.length);
-            var key = landCells.splice(index, 1)[0];
-            this.map[key] = this.boxSigil;
-            this.boxes.push(key);
+    _generateBoxes: function(landCells, waterCells) {
+        for (var i=0; i<this.numBoxes; i++) {
+            while (true) {
+                var xyk = this._getRandPos(landCells);
+                var key = xyk[2];
+                if (!this._isFreeTile(key)) {
+                    console.debug("WARN box-on-box collision at "+key+" :: "+this.map[key]);
+                    continue;
+                }
+                var res = this._isCoastline(xyk[0], xyk[1], waterCells);
+                if (res === false) {
+                    continue;
+                }
+
+                this.map[key] = this.boxSigil;
+                this.boxes.push(key);
+                break;
+            }
         }
     },
 
-    _generatePorts: function(landCells) {
-        // @TODO check for boxes first
-        for (var i=0;i<this.numPorts;i++) {
-            var index = Math.floor(ROT.RNG.getUniform() * landCells.length);
-            var key = landCells.splice(index, 1)[0];
-            this.map[key] = this.portSigil;
-            this.ports.push(key);
+    _generatePorts: function(landCells, waterCells) {
+        for (var i=0; i<this.numPorts; i++) {
+            while (true) {
+                var xyk = this._getRandPos(landCells);
+                var key = xyk[2];
+                if (!this._isFreeTile(key)) {
+                    console.debug("WARN port-on-box collision at "+key);
+                    continue;
+                }
+                var res = this._isCoastline(xyk[0], xyk[1], waterCells);
+                if (res === false) {
+                    continue;
+                }
+
+                this.map[key] = this.portSigil;
+                this.ports.push(key);
+                break;
+            }
         }
     },
 
-    _isCoastline: function() {
+    _generateDoors: function(waterCells) {
+        for (var i=0; i<this.numDoors; i++) {
+            while (true) {
+                var xyk = this._getRandPos(waterCells);
+                var key = xyk[2];
+                if (this._isMapBorder(xyk[0],xyk[1])) {
+                    this.map[key] = this.doorSigil;
+                    this.doors.push(key);
+                    break;
+                }
+            }
+        }
+    },
 
+    _getRandKey: function(cells) {
+        var index = Math.floor(ROT.RNG.getUniform() * cells.length);
+        var key = cells.splice(index, 1)[0];
+        return key;
+    },
+
+    _getRandPos: function(cells) {
+        var key = this._getRandKey(cells);
+        var parts = key.split(",");
+        var x = parseInt(parts[0]);
+        var y = parseInt(parts[1]);
+        return [x, y, key];
+    },
+
+    _isFreeTile: function(key) {
+        return !(this.map[key] != this.defaultSigil && this.map[key] != undefined);
+    },
+
+    _isCoastline: function(x, y, waterCells) {
+        var cardinal = ROT.DIRS[4];
+        for (var i=0; i<cardinal.length; i++) {
+            var dir = cardinal[i];
+            var newX = x + dir[0];
+            var newY = y + dir[1];
+            var newKey = newX+","+newY;
+            if (waterCells.includes(newKey)) {
+                return [newX, newY, newKey];
+            }
+        }
+        return false;
+    },
+
+    _isMapBorder: function(x, y) {
+        return ((x == 0 || x == this.width-1) || (y == 0 || y == this.height-1));
     },
 
     _drawWholeMap: function() {
@@ -177,10 +255,13 @@ var Game = {
             bgc = this.bgDefault;
         } else if (sigil == this.portSigil) {
             fgc = this.portColor;
-            bgc = this.bgDefault;
+            bgc = this.portBgColor;
         } else if (sigil == this.bossSigil) {
             fgc = this.bossColor;
             bgc = this.waterColor;
+        } else if (sigil == this.doorSigil) {
+            fgc = this.doorColor;
+            bgc = this.doorBgColor;
         }
         this.display.draw(x, y, sigil, fgc, bgc);
     }

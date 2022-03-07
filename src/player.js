@@ -117,6 +117,8 @@ Player.prototype._usePort = function() {
                 var str = "You try to dock at the port.";
                 if (this._currency >= Game.volCurrencyToExit) {
                     str += " You pay "+Game.volCurrencyToExit+" in fees."
+                    this._currency -= Game.volCurrencyToExit;
+                    Game.levelFinished = true;
                 } else {
                     str += " You don't have the "+Game.volCurrencyToExit+" rations to pay the fees."
                 }
@@ -199,7 +201,7 @@ Player.prototype._encounter = function(enemy) {
     var hookedPerc = null;
     while (!success) {
         this._energy -= 1;
-        Game.update();
+        Game.updS();
         console.debug("!! "+this.s()+" vs "+enemy.s());
 
         var dexDiff = this.getDex() - enemy.getDex();
@@ -244,6 +246,7 @@ Player.prototype._encounter = function(enemy) {
                 continue;
             } else {
                 console.debug("!! Fish got away "+hookPerc+"/50");
+                Game.toast = "The fish got away.";
                 return true;
             }
         } else if (dexDiff == -1 || dexDiff == -2) {
@@ -253,14 +256,17 @@ Player.prototype._encounter = function(enemy) {
                 continue;
             } else {
                 console.debug("!! Fish got away "+hookPerc+"/20");
+                Game.toast = "The fish got away.";
                 return true;
             }
         } else {
             console.debug("!! Fish too strong");
+            Game.toast = "The fish is too strong.";
             return true;
         }
     }
     console.debug("!! post. success:"+success);
+    Game.toast = "You caught the fish!";
     var rewardPerc = ROT.RNG.getPercentage();
     if (rewardPerc <= 50) {
         this._currency += 1;
@@ -268,7 +274,6 @@ Player.prototype._encounter = function(enemy) {
         this._currency += 2;
     }
     Game.remove(enemy);
-    Game.update();
     return true;
 }
 

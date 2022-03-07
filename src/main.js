@@ -19,6 +19,9 @@ var Game = {
         "nothing": []
     },
 
+    gameLost: false,
+    levelFinished: false,
+
     // general game params
     width: 86,
     height: 30,
@@ -86,22 +89,32 @@ var Game = {
         this._drawStatus();
     },
 
-    update: function() {
-        this._drawWholeMap();
-        this._drawEntities();
-        this._drawStatus();
-
+    checkGameState: function() {
         if (this.player.getEnergy() < 1) {
             alert("GAME OVER");
             Game.engine.lock();
             window.removeEventListener("keydown", this);
         }
+        if (this.levelFinished) {
+            alert("YOU WON");
+            Game.engine.lock();
+            window.removeEventListener("keydown", this);
+        }
+    },
+
+    update: function() {
+        this._drawWholeMap();
+        this._drawEntities();
+        this._drawStatus();
+        this.checkGameState();
     },
     updE: function() {
         this._drawEntities();
+        this.checkGameState();
     },
     updS: function() {
         this._drawStatus();
+        this.checkGameState();
     },
 
     _drawStatus: function() {
@@ -112,10 +125,11 @@ var Game = {
         }
         this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
                 this.playerColor, this.bgText);
-        var str = "%b{black}You have %c{green}"+this.player.getEnergy()+"%c{} energy.";
-        str += " STR %c{red}"+this.player.getStr()+"%c{}";
-        str += " DEX %c{purple}"+this.player.getDex()+"%c{}";
-        str += " You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
+
+        var str = "%b{black}Energy: %c{green}"+this.player.getEnergy()+"%c{}";
+        str += " DEX: %c{purple}"+this.player.getDex()+"%c{}";
+        str += " STR: %c{red}"+this.player.getStr()+"%c{}";
+        str += " - You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
         str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
         if (this.toast.length > 0) {

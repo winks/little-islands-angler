@@ -23,14 +23,38 @@ Player.prototype.act = function() {
     window.addEventListener("keydown", this);
 }
 
-Player.prototype.handleEvent = function(e) {
-    var code = e.keyCode;
-    if (code == 13 || code == 32) {
-        this._usePort();
+Player.prototype.handleEvent = function(ev) {
+    var code = ev.keyCode;
+    // @TODO keyCode -> key
+    //console.debug("event: "+code+" "+e.key+" "+e.code);
+
+    // enter to finish level
+    if (code == 13) {
+        var rv = this._usePort();
+        if (rv) {
+            Game.updS();
+            window.removeEventListener("keydown", this);
+            Game.engine.unlock();
+        }
+        return;
+    }
+    // space for fishing
+    if (code == 32) {
         this._startEncounter();
         return;
     }
+    // e to eat
+    if (code == 69) {
+        var rv = this._fillEnergy();
+        if (rv) {
+            Game.updS();
+            window.removeEventListener("keydown", this);
+            Game.engine.unlock();
+        }
+        return;
+    }
 
+    // arrow keys and NUMPAD
     var keyMap = {};
     keyMap[38] = 0;
     keyMap[33] = 1;
@@ -78,12 +102,18 @@ Player.prototype._usePort = function() {
         for (let w of where) {
             if (w._type == Game.portSigil) {
                 console.debug("A PORT");
-                window.removeEventListener("keydown", this);
-                Game.engine.unlock();
-                return;
+                var str = "You try to dock at the port.";
+                if (this._currency >= Game.volCurrencyToExit) {
+                    str += " You pay "+Game.volCurrencyToExit+" in fees."
+                } else {
+                    str += " You don't have the "+Game.volCurrencyToExit+" rations to pay the fees."
+                }
+                Game.toast = str;
+                return true;
             }
         }
     }
+    return false;
 }
 
 Player.prototype._startEncounter = function() {
@@ -185,5 +215,14 @@ Player.prototype._encounter = function(enemy) {
     }
     Game.remove(enemy);
     Game.update();
-    return;
+}
+
+Player.prototype._fillEnergy = function() {
+    if (this._currency < 1) {
+        // @TODO beep
+        return false;
+    }
+    this._currency -= 1;
+    this._energy += 5;
+    return true;
 }

@@ -11,30 +11,36 @@ var Game = {
     ent: {},
     landCells: [],
     waterCells: [],
+    toast: "",
 
     // general game params
-    width: 120,
-    height: 40,
-    fontSize: 16,
-    statusLines: 3,
+    width: 86,
+    height: 30,
+    fontSize: 22,
+    statusLines: 4,
     statusOffsetX: 3,
     statusOffsetY: 1,
 
-    numFish: 3,
+    numFish: 10,
+    numPredators: 5,
     numBoxes: 3,
     numPorts: 1,
     numDoors: 0,
 
+    volCurrencyToExit: 10,
+
     // sigils
     defaultSigil: " ",
-    bossSigil: "$",
-    boxSigil: "!",
+    bossSigil: "*",
+    boxSigil: "$",
     doorSigil: "^",
     fishSigil: "%",
     playerSigil: "@",
+    predatorSigil: "!",
     portSigil: "#",
 
     fishTypes: ["salmon", "tuna", "trout"],
+    predTypes: ["pred1", "pred2"],
 
     bgDefault: "#757358",
     bgText: "#000",
@@ -45,6 +51,7 @@ var Game = {
     fishColor: "#000",
     fgText: "#eee",
     playerColor: "#ff0",
+    predatorColor: "#ccc",
     portColor: "#f00",
     portBgColor: "#4d2600",
     waterColor: "#06c",
@@ -84,8 +91,11 @@ var Game = {
             window.removeEventListener("keydown", this);
         }
     },
-    ue: function() {
+    updE: function() {
         this._drawEntities();
+    },
+    updS: function() {
+        this._drawStatus();
     },
 
     _drawStatus: function() {
@@ -102,6 +112,11 @@ var Game = {
         str += " You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
         str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
+        if (this.toast.length > 0) {
+            var s2 = "%b{black}"+this.toast+"%b{}";
+            this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+1, s2);
+            this.toast = "";
+        }
     },
     
     _generateMap: function() {
@@ -149,12 +164,16 @@ var Game = {
 
     _generateFish: function(waterCells) {
         for (var i=0;i<this.numFish;i++) {
-            var f = this._createBeing(Fish, waterCells);
-            // randomize fish type
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
-            f._type = this.fishTypes[typeIndex];
-            f._id = i;
-            this.fish[i] = f;
+            var id = "fi"+i;
+            var f = this._createBeing(Fish, waterCells, [this.fishTypes[typeIndex], false, false, id]);
+            this.fish[id] = f;
+        }
+        for (var i=0;i<this.numPredators;i++) {
+            var typeIndex = Math.floor(ROT.RNG.getUniform() * this.predTypes.length);
+            var id = "pr"+i;
+            var f = this._createBeing(Fish, waterCells, [this.fishTypes[typeIndex], false, true, id]);
+            this.fish[id] = f;
         }
     },
 
@@ -267,9 +286,7 @@ var Game = {
     },
 
     remove: function(fish) {
-        console.debug("RM ", this.fish);
         delete this.fish[fish._id];
-        console.debug("RM ", this.fish);
     },
 
     _drawWholeMap: function() {
@@ -330,7 +347,7 @@ var Game = {
 
 };
 
-var Fish = function(x, y, type, isBoss, id) {
+var Fish = function(x, y, type, isBoss, isPredator, id) {
     this._x = x;
     this._y = y;
     this._id = id;
@@ -338,8 +355,12 @@ var Fish = function(x, y, type, isBoss, id) {
     this._dexterity = 6 + 1 + Math.floor(ROT.RNG.getUniform() * 5);
     this._type = type;
     this._isBoss = false;
+    this._isPredator = false;
     if (isBoss === true) {
         this._isBoss = true;
+    }
+    if (isPredator === true) {
+        this._isPredator = true;
     }
     this._draw();
     this.s("New ");
@@ -354,7 +375,10 @@ Fish.prototype._draw = function() {
     var color = Game.fishColor;
     if (this._isBoss) {
         sigil = Game.bossSigil;
-        color = Game.bossColor
+        color = Game.bossColor;
+    } else if (this._isPredator) {
+        sigil = Game.predatorSigil;
+        color = Game.predatorColor;
     }
     Game.draw(this._x, this._y, sigil, color);
 }

@@ -8,9 +8,7 @@ var Game = {
     boss: null,
     fish: {},
     // just map keys
-    boxes: [],
-    ports: [],
-    doors: [],
+    ent: {},
     landCells: [],
     waterCells: [],
 
@@ -101,7 +99,7 @@ var Game = {
         var str = "%b{black}You have %c{green}"+this.player.getEnergy()+"%c{} energy.";
         str += " STR %c{red}"+this.player.getStr()+"%c{}";
         str += " DEX %c{purple}"+this.player.getDex()+"%c{}";
-        str += " You have %c{yellow}"+this.player.getCurrency()+"%c{} kg of fish.";
+        str += " You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
         str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
     },
@@ -174,8 +172,10 @@ var Game = {
                     continue;
                 }
 
-                this.map[key] = this.boxSigil;
-                this.boxes.push(key);
+                if (!(key in this.ent)) {
+                    this.ent[key] = [];
+                }
+                this.ent[key].push(new Site(xyk[0], xyk[1], this.boxSigil));
                 break;
             }
         }
@@ -195,8 +195,10 @@ var Game = {
                     continue;
                 }
 
-                this.map[key] = this.portSigil;
-                this.ports.push(key);
+                if (!(key in this.ent)) {
+                    this.ent[key] = [];
+                }
+                this.ent[key].push(new Site(xyk[0], xyk[1], this.portSigil));
                 break;
             }
         }
@@ -208,8 +210,10 @@ var Game = {
                 var xyk = this._getRandPos(waterCells);
                 var key = xyk[2];
                 if (this._isMapBorder(xyk[0],xyk[1])) {
-                    this.map[key] = this.doorSigil;
-                    this.doors.push(key);
+                    if (!(key in this.ent)) {
+                        this.ent[key] = [];
+                    }
+                    this.ent[key].push(new Site(xyk[0], xyk[1], this.doorSigil));
                     break;
                 }
             }
@@ -231,7 +235,7 @@ var Game = {
     },
 
     _isFreeTile: function(key) {
-        return !(this.map[key] != this.defaultSigil && this.map[key] != undefined);
+        return this.ent[key] == undefined;
     },
 
     hasFishAt: function(x, y) {
@@ -283,6 +287,13 @@ var Game = {
         for (let i of Object.keys(this.fish)) {
             var f = this.fish[i];
             if (f) f._draw();
+        }
+        //console.debug(this.ent);
+        for (let ix of Object.keys(this.ent)) {
+            for (let i of this.ent[ix]) {
+                var e = this.ent[i];
+                if (e) e._draw();
+            }
         }
         this.boss._draw();
         this.player._draw();
@@ -358,4 +369,25 @@ Fish.prototype.s = function(prefix, suffix) {
 
 Fish.prototype.k = function() {
     return this._x+","+this._y;
+}
+
+var Site = function(x, y, type) {
+    this._x = x;
+    this._y = y;
+    this._type = type;
+    this._draw();
+}
+
+Site.prototype.k = function() {
+    return this._x+","+this._y;
+}
+
+Site.prototype.s = function() {
+    return "[Site: "+this._type+ "@ ("+this.k()+")";
+}
+
+Site.prototype._draw = function() {
+    var sigil = this._type;
+    var color = Game.fishColor;
+    Game.draw(this._x, this._y, sigil, color);
 }

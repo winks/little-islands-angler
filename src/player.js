@@ -26,7 +26,7 @@ Player.prototype.act = function() {
 Player.prototype.handleEvent = function(e) {
     var code = e.keyCode;
     if (code == 13 || code == 32) {
-        //this._usePort();
+        this._usePort();
         this._startEncounter();
         return;
     }
@@ -54,11 +54,9 @@ Player.prototype.handleEvent = function(e) {
         //console.debug("checkMove "+newKey+" "+Game.map[newKey]);
     }
 
-    Game.draw(this._x, this._y, Game.map[this._x+","+this._y]);
-    //Game.ue();
     this._x = newX;
     this._y = newY;
-    this._draw();
+    Game.update();
     window.removeEventListener("keydown", this);
     Game.engine.unlock();
 }
@@ -75,11 +73,15 @@ Player.prototype._usePort = function() {
         var newX = this._x + dir[0];
         var newY = this._y + dir[1];
         var newKey = newX+","+newY;
-        if (Game.map[newKey] == Game.portSigil) {
-            console.debug("A PORT");
-            window.removeEventListener("keydown", this);
-            Game.engine.unlock();
-            return;
+        var where = Game.ent[newKey];
+        if (where == undefined) continue;
+        for (let w of where) {
+            if (w._type == Game.portSigil) {
+                console.debug("A PORT");
+                window.removeEventListener("keydown", this);
+                Game.engine.unlock();
+                return;
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 var Game = {
     display: null,
+    engine: null,
     map: {},
+    player: null,
+
     width: 160,
     height: 80,
     fontSize: 12,
@@ -8,15 +11,23 @@ var Game = {
     numFish: 10,
     fishSigil: "%",
     fishColor: "#000",
+    playerSigil: "@",
+    playerColor: "#ff0",
+    waterColor: "#06c",
     
     init: function() {
         var displayOpt = {width: this.width, height: this.height, fontSize: this.fontSize, bg: this.bgDefault};
         this.display = new ROT.Display(displayOpt);
-        //this.display = new ROT.Display();
-        //console.debug(this.display.getContainer());
         document.body.appendChild(this.display.getContainer());
         
         this._generateMap();
+
+        var scheduler = new ROT.Scheduler.Simple();
+        scheduler.add(this.player, true);
+        //scheduler.add(this.pedro, true);
+
+        this.engine = new ROT.Engine(scheduler);
+        this.engine.start();
     },
     
     _generateMap: function() {
@@ -41,8 +52,18 @@ var Game = {
         this._generateFish(freeCells);
         this._drawWholeMap();
 
+        this.player = this._createBeing(Player, freeCells);
     },
-    
+
+    _createBeing: function(what, freeCells) {
+        var index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
+        var key = freeCells.splice(index, 1)[0];
+        var parts = key.split(",");
+        var x = parseInt(parts[0]);
+        var y = parseInt(parts[1]);
+        return new what(x, y);
+    },
+
     _generateFish: function(freeCells) {
         for (var i=0;i<this.numFish;i++) {
             var index = Math.floor(ROT.RNG.getUniform() * freeCells.length);
@@ -58,16 +79,75 @@ var Game = {
             var x = parseInt(parts[0]);
             var y = parseInt(parts[1]);
             var sigil = this.map[key];
-            // default: water
-            var fgc = "#fff";
-            var bgc = "#06c";
-            if (sigil == this.fishSigil) {
-                fgc = this.fishColor;
-            }
-            this.display.draw(x, y, sigil, fgc, bgc);
+            this.draw(x, y, sigil)
         }
+    },
+
+    draw: function(x, y, sigil, fgc_, bgc_) {
+        var fgc = "#fff";
+        var bgc = this.waterColor;
+        if (fgc_ != null) fgc = fgc_;
+        if (bgc_ != null) bgc = bgc_;
+        if (sigil == this.playerSigil) {
+            fgc = this.playerColor;
+            bgc = this.waterColor;
+        } else if (sigil == this.fishSigil) {
+            fgc = this.fishColor;
+        }
+        this.display.draw(x, y, sigil, fgc, bgc);
     }
 
 };
 
-//Game.init();
+var Player = function(x, y) {
+    this._x = x;
+    this._y = y;
+    this._draw();
+};
+Player.prototype.getSpeed = function() { return 100; }
+Player.prototype.getX = function() { return this._x; }
+Player.prototype.getY = function() { return this._y; }
+
+Player.prototype.act = function() {
+    Game.engine.lock();
+    window.addEventListener("keydown", this);
+}
+
+Player.prototype.handleEvent = function(e) {
+    var code = e.keyCode;
+    if (code == 13 || code == 32) {
+        this._checkBox();
+        return;
+    }
+
+    var keyMap = {};
+    keyMap[38] = 0;
+    keyMap[33] = 1;
+    keyMap[39] = 2;
+    keyMap[34] = 3;
+    keyMap[40] = 4;
+    keyMap[35] = 5;
+    keyMap[37] = 6;
+    keyMap[36] = 7;
+
+    /* one of numpad directions? */
+    if (!(code in keyMap)) { return; }
+
+    /* is there a free space? */
+    var dir = ROT.DIRS[8][keyMap[code]];
+    var newX = this._x + dir[0];
+    var newY = this._y + dir[1];
+    var newKey = newX + "," + newY;
+    if (!(newKey in Game.map)) { return; }
+
+    Game.draw(this._x, this._y, Game.map[this._x+","+this._y]);
+    this._x = newX;
+    this._y = newY;
+    this._draw();
+    window.removeEventListener("keydown", this);
+    Game.engine.unlock();
+}
+
+Player.prototype._draw = function() {
+    Game.draw(this._x, this._y, Game.playerSigil, Game.playerColor);
+}

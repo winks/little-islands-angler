@@ -52,7 +52,12 @@ var Game = {
     waterColor: "#06c",
 
     init: function() {
-        var displayOpt = {width: this.width, height: this.height+this.statusLines, fontSize: this.fontSize, bg: this.bgDefault};
+        var displayOpt = {
+            width: this.width,
+            height: this.height+this.statusLines,
+            fontSize: this.fontSize,
+            bg: this.bgDefault
+        };
         this.display = new ROT.Display(displayOpt);
         document.body.appendChild(this.display.getContainer());
         
@@ -70,14 +75,34 @@ var Game = {
         this._drawStatus();
     },
 
+    update: function() {
+        this._drawWholeMap();
+        this._drawEntities();
+        this._drawStatus();
+
+        if (this.player.getEnergy() < 1) {
+            alert("GAME OVER");
+            Game.engine.lock();
+            window.removeEventListener("keydown", this);
+        }
+    },
+    ue: function() {
+        this._drawEntities();
+    },
+
     _drawStatus: function() {
         for(var x=0;x<this.width;x++) {
             for(var y=this.height;y<this.height+this.statusLines;y++) {
                 this.draw(x, y, " ", this.fgText, this.bgText);
             }
         }
-        this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil, this.playerColor, this.bgText);
-        var str = "%b{black}You have %c{green}"+this.player.getEnergy()+"%c{} energy.%b{}";
+        this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
+                this.playerColor, this.bgText);
+        var str = "%b{black}You have %c{green}"+this.player.getEnergy()+"%c{} energy.";
+        str += " STR %c{red}"+this.player.getStr()+"%c{}";
+        str += " DEX %c{purple}"+this.player.getDex()+"%c{}";
+        str += " You have %c{yellow}"+this.player.getCurrency()+"%c{} kg of fish.";
+        str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
     },
     
@@ -104,15 +129,14 @@ var Game = {
         this._generateBoxes(this.landCells, this.waterCells);
         this._generatePorts(this.landCells, this.waterCells);
         this._generateDoors(this.waterCells);
-        this._drawWholeMap();
-
         this._generateEntities(this.waterCells, this.landCells);
+
+        this.update();
     },
 
     _generateEntities: function(waterCells, landCells) {
         this.player = this._createBeing(Player, waterCells);
         this.boss = this._createBeing(Fish, waterCells, ["shark", true]);
-        console.debug("boss", this.boss);
         this._generateFish(waterCells);
     },
 
@@ -131,6 +155,7 @@ var Game = {
             // randomize fish type
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
             f._type = this.fishTypes[typeIndex];
+            f._id = i;
             this.fish[i] = f;
         }
     },
@@ -209,6 +234,16 @@ var Game = {
         return !(this.map[key] != this.defaultSigil && this.map[key] != undefined);
     },
 
+    hasFishAt: function(x, y) {
+        for (let i of Object.keys(this.fish)) {
+            var f = this.fish[i];
+            if (x == f.getX() && y == f.getY()) {
+                return i;
+            }
+        }
+        return false;
+    },
+
     _isCoastline: function(x, y, waterCells) {
         var cardinal = ROT.DIRS[4];
         for (var i=0; i<cardinal.length; i++) {
@@ -227,6 +262,12 @@ var Game = {
         return ((x == 0 || x == this.width-1) || (y == 0 || y == this.height-1));
     },
 
+    remove: function(fish) {
+        console.debug("RM ", this.fish);
+        delete this.fish[fish._id];
+        console.debug("RM ", this.fish);
+    },
+
     _drawWholeMap: function() {
         for (var key in this.map) {
             var parts = key.split(",");
@@ -235,6 +276,16 @@ var Game = {
             var sigil = this.map[key];
             this.draw(x, y, sigil)
         }
+    },
+
+    _drawEntities: function() {
+        //console.debug("DRW",this.fish);
+        for (let i of Object.keys(this.fish)) {
+            var f = this.fish[i];
+            if (f) f._draw();
+        }
+        this.boss._draw();
+        this.player._draw();
     },
 
     draw: function(x, y, sigil, fgc_, bgc_) {
@@ -268,18 +319,23 @@ var Game = {
 
 };
 
-
-var Fish = function(x, y, type, isBoss) {
+var Fish = function(x, y, type, isBoss, id) {
     this._x = x;
     this._y = y;
+    this._id = id;
+    this._strength =  5 + 1 + Math.floor(ROT.RNG.getUniform() * 8);
+    this._dexterity = 6 + 1 + Math.floor(ROT.RNG.getUniform() * 5);
     this._type = type;
     this._isBoss = false;
     if (isBoss === true) {
         this._isBoss = true;
     }
     this._draw();
+    this.s("New ");
 }
 Fish.prototype.getSpeed = function() { return 100; }
+Fish.prototype.getStr = function() { return this._strength; }
+Fish.prototype.getDex = function() { return this._dexterity; }
 Fish.prototype.getX = function() { return this._x; }
 Fish.prototype.getY = function() { return this._y; }
 Fish.prototype._draw = function() {
@@ -290,4 +346,16 @@ Fish.prototype._draw = function() {
         color = Game.bossColor
     }
     Game.draw(this._x, this._y, sigil, color);
+}
+
+Fish.prototype.s = function(prefix, suffix) {
+    var msg = "[Fish  : DEX: "+this._dexterity+" STR: "+this._strength+" @ ("+this.k()+")]";
+    if (this._isBoss) msg += " BOSS";
+    if (prefix) msg = prefix + msg;
+    if (suffix) msg = msg + suffix;
+    return msg;
+}
+
+Fish.prototype.k = function() {
+    return this._x+","+this._y;
 }

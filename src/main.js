@@ -4,22 +4,32 @@ var Game = {
     map: {},
     player: null,
     fish: {},
+    boxes: [],
+    ports: [],
 
     width: 160,
     height: 80,
     fontSize: 12,
-    bgDefault: "#757358",
+
     numFish: 3,
     numBoxes: 3,
-    fishTypes: ["salmon", "tuna", "trout"],
-    fishSigil: "%",
-    fishColor: "#000",
-    playerSigil: "@",
-    playerColor: "#ff0",
-    waterColor: "#06c",
+    numPorts: 1,
+
+    defaultSigil: " ",
     boxSigil: "!",
+    fishSigil: "%",
+    playerSigil: "@",
+    portSigil: "#",
+
+    fishTypes: ["salmon", "tuna", "trout"],
+
+    bgDefault: "#757358",
     boxColor: "#fff",
-    
+    fishColor: "#000",
+    playerColor: "#ff0",
+    portColor: "#f00",
+    waterColor: "#06c",
+
     init: function() {
         var displayOpt = {width: this.width, height: this.height, fontSize: this.fontSize, bg: this.bgDefault};
         this.display = new ROT.Display(displayOpt);
@@ -61,6 +71,7 @@ var Game = {
         console.debug(map);
 
         this._generateBoxes(landCells);
+        this._generatePorts(landCells);
         this._drawWholeMap();
 
         this.player = this._createBeing(Player, freeCells);
@@ -91,8 +102,22 @@ var Game = {
             var index = Math.floor(ROT.RNG.getUniform() * landCells.length);
             var key = landCells.splice(index, 1)[0];
             this.map[key] = this.boxSigil;
-            //console.debug(key)
+            this.boxes.push(key);
         }
+    },
+
+    _generatePorts: function(landCells) {
+        // @TODO check for boxes first
+        for (var i=0;i<this.numPorts;i++) {
+            var index = Math.floor(ROT.RNG.getUniform() * landCells.length);
+            var key = landCells.splice(index, 1)[0];
+            this.map[key] = this.portSigil;
+            this.ports.push(key);
+        }
+    },
+
+    _isCoastline: function() {
+
     },
 
     _drawWholeMap: function() {
@@ -117,9 +142,12 @@ var Game = {
         } else if (sigil == this.fishSigil) {
             fgc = this.fishColor;
             bgc = this.waterColor;
-            console.debug("df",x,y, sigil, fgc, bgc);
+            //console.debug("df",x,y, sigil, fgc, bgc);
         } else if (sigil == this.boxSigil) {
             fgc = this.boxColor;
+            bgc = this.bgDefault;
+        } else if (sigil == this.portSigil) {
+            fgc = this.portColor;
             bgc = this.bgDefault;
         }
         this.display.draw(x, y, sigil, fgc, bgc);

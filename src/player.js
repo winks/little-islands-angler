@@ -8,6 +8,8 @@ var Player = function(x, y) {
     this._dexterity = 10;
     this._currency = 0;
     this._inventory = [];
+    this.addItem(Game.ITEM.LURE_STD, 3);
+
     this._draw();
 };
 Player.prototype.getSpeed = function() { return 100; }
@@ -33,6 +35,18 @@ Player.prototype.addCurrency = function(e) {
 }
 Player.prototype.loseCurrency = function(e) {
     this._currency -= e;
+}
+Player.prototype.addItem = function(item, count) {
+    for (var i=0; i<this._inventory; i++) {
+        if (this._inventory[i]._id == item.id) {
+            this._inventory[i]._count += count;
+            console.debug("II you gain +"+count+" of "+this._inventory[i].s());
+            return;
+        }
+    }
+    var it = new InventoryItem(item.id, count);
+    this._inventory.push(it);
+    console.debug("II you gain "+count+" of "+it.s());
 }
 
 Player.prototype.act = function() {
@@ -141,17 +155,14 @@ Player.prototype._openBox = function() {
         console.debug("A BOX ("+what.s()+") "+this.s());
         var str = "You try to open the box.";
         this.loseEnergy(1);
-        if (!what._contents || what._contents == "nothing") {
+        if (!what._contents || what._contents == Game.ITEM.NOTHING) {
             str += " You find nothing in it.";
-        } else if (what._contents == "tome_str") {
-            str += " You find a tome of strength!";
-            this._strength += 1;
-        } else if (what._contents == "tome_dex") {
-            str += " You find a tome of dexterity!";
-            this._dexterity += 1;
-        } else if (what._contents == "ration") {
-            str += " You find a ration of fish.";
-            this.addCurrency(1);
+        } else if (what._contents == Game.ITEM.INSTA_ENE) {
+            str += " You find a "+what._contents.name;
+            this.addEnergy(5);
+        } else {
+            str += " You find a "+what._contents.name;
+            this.addItem(what._contents, 1);
         }
         console.debug("A BOX END"+this.s());
         Game.emptyBox(what._id);
@@ -311,4 +322,17 @@ Player.prototype._inspect = function() {
         return true;
     }
     return false;
+}
+
+var InventoryItem = function(id, count) {
+    this._id = id;
+    this._count = count;
+}
+InventoryItem.prototype.i = function() { return this._id; }
+InventoryItem.prototype.c = function() { return this._count; }
+InventoryItem.prototype.s = function() {
+    return "[InvItem id:"+this._id+" c:"+this._count+" x:"+Game.ITEM[this._id].name+"]";
+}
+InventoryItem.prototype.pretty = function() {
+    return Game.ITEM[this._id].name;
 }

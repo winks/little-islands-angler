@@ -34,7 +34,7 @@ var Game = {
     width: 86,
     height: 30,
     fontSize: 22,
-    statusLines: 5,
+    statusLines: 6,
     statusOffsetX: 3,
     statusOffsetY: 1,
 
@@ -85,7 +85,7 @@ var Game = {
         
         this.nextLevel();
         this._generatePlayer(this.waterCells);
-        this.levelStart();
+        this.startLevel();
         this.update();
     },
 
@@ -153,11 +153,10 @@ var Game = {
         this.toast = "";
         this.levelFinished = false;
 
-
         this._generateMap();
     },
 
-    levelStart: function() {
+    startLevel: function() {
         var scheduler = new ROT.Scheduler.Simple();
         scheduler.add(this.player, true);
         //scheduler.add(this.boss, true);
@@ -247,12 +246,18 @@ var Game = {
                 }
                 var boxPerc = ROT.RNG.getPercentage();
                 var treasure = null;
-                if (boxPerc <= 5) {
-                    treasure = "tome_str";
-                } else if (boxPerc <= 10) {
-                    treasure = "tome_dex";
+                if (boxPerc <= 10) {
+                    treasure = Game.ITEM.LURE_STD;
+                } else if (boxPerc <= 20) {
+                    treasure = Game.ITEM.LURE_ENH;
+                } else if (boxPerc <= 30) {
+                    treasure = Game.ITEM.HARPOON_PLUS;
+                } else if (boxPerc <= 40) {
+                    treasure = Game.ITEM.LINE_STRONG;
                 } else if (boxPerc <= 50) {
-                    treasure = "ration";
+                    treasure = Game.ITEM.SUPERBERRY;
+                } else if (boxPerc <= 60) {
+                    treasure = Game.ITEM.INSTA_ENE;
                 } else {
                     treasure = null;
                 }
@@ -387,16 +392,17 @@ var Game = {
 
         // inventory
         var inv = this.player.getInv();
-        var invText = "";
+        var invText = "%b{black}";
         for (var i=0; i<inv.length; i++) {
-            str += (i+1)+": "+inv[i][0];
+            invText += " "+(i+1)+": "+inv[i].pretty();
         }
-        this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+1, invText);
+        invText += "%b{}";
+        this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+1, invText);
 
         // status messages
         if (this.toast.length > 0) {
             var s2 = "%b{black}"+this.toast+"%b{}";
-            this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+2, s2);
+            this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+3, s2);
             this.toast = "";
         }
     },
@@ -431,8 +437,31 @@ var Game = {
     }
 };
 Game.ITEM = {};
-Game.ITEM.TOME_STR = {id:0, name: "Tome of Strength" };
-Game.ITEM.LURE_STD = {id:11, name: "Standard Lure" };
+Game.ITEM[0] = {id:0, name: "nothing" };
+Game.ITEM[1] = {id:1, name: "Tome of Strength" };
+Game.ITEM[2] = {id:2, name: "Tome of Dexterity" };
+Game.ITEM[3] = {id:3, name: "Tome of Energy" };
+Game.ITEM[11] = {id:11, name: "Standard Lure" };
+Game.ITEM[12] = {id:12, name: "Better Lure" };
+Game.ITEM[13] = {id:13, name: "Rainbow Fly" };
+Game.ITEM[18] = {id:18, name: "Harpoon+" };
+Game.ITEM[19] = {id:19, name: "Stronger Line" };
+Game.ITEM[30] = {id:30, name: "Superberry" };
+Game.ITEM[31] = {id:30, name: "InstaEnergy" };
+Game.ITEM[40] = {id:40, name: "Ration of Fish" };
+
+Game.ITEM.NOTHING  = Game.ITEM[0];
+Game.ITEM.TOME_STR  = Game.ITEM[1];
+Game.ITEM.TOME_DEX  = Game.ITEM[2];
+Game.ITEM.TOME_ENE  = Game.ITEM[3];
+Game.ITEM.LURE_STD  = Game.ITEM[11];
+Game.ITEM.LURE_ENH  = Game.ITEM[12];
+Game.ITEM.LURE_BOSS = Game.ITEM[13];
+Game.ITEM.HARPOON_PLUS = Game.ITEM[18];
+Game.ITEM.LINE_STRONG  = Game.ITEM[19];
+Game.ITEM.SUPERBERRY   = Game.ITEM[30];
+Game.ITEM.INSTA_ENE    = Game.ITEM[31];
+Game.ITEM.RATION       = Game.ITEM[40];
 
 var Fish = function(x, y, id, type, isBoss, isPredator) {
     this._x = x;

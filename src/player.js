@@ -6,7 +6,7 @@ var Player = function(x, y) {
     this._energyMax = 30;
     this._strength = 10;
     this._dexterity = 10;
-    this._currency = 0;
+    this._currency = 20;
     this._inventory = [];
     this._activeAction = {};
 
@@ -83,9 +83,43 @@ Player.prototype.handleEvent = function(ev) {
         Game.engine.unlock();
     }
 
+    // a modal dialog for a shop
+    if (Game.shopOpen) {
+        if (code == "Escape" || code == "KeyB") {
+            Game.closePanel();
+            return unlock(true);
+        }
+        var lookup = {};
+        for (var i=1; i<=9; i++) {
+            lookup["Digit"+i] = i;
+        }
+        lookup["Digit0"] = 0;
+        if (lookup[code]) {
+            var idx = lookup[code];
+            var inv = Game.SHOP[idx];
+            var name = inv.item.name;
+            if (inv.item.long) name = inv.item.long;
+            console.debug("BUY",code,idx,inv);
+            if (this._currency >= inv.price) {
+                Game.toast = "You buy "+inv.units+" %c{white}"+name+".";
+                inv.item.resolve(inv.units);
+                this._currency -= inv.price;
+                Game.updS();
+            } else {
+                Game.toast = "Insufficient funds.";
+                Game.updS();
+            }
+        }
+    }
+
     // enter to finish level, keyCode 13
     if (code == "Enter" || code == "NumpadEnter") {
         var rv = this._usePort();
+        return unlock(rv);
+    }
+    // b to buy, keyCode 66
+    if (code == "KeyB") {
+        var rv = this._useShop();
         return unlock(rv);
     }
     // space for fishing and boxes, keyCode 32
@@ -172,6 +206,18 @@ Player.prototype._usePort = function() {
     return this._interact(Game.portSigil, cb.bind(this));
 }
 
+Player.prototype._useShop = function() {
+    var cb = function(what) {
+        console.debug("A shop");
+        var str = "You shop at the port.";
+        Game.openShop();
+        Game.toast = str;
+        Game.updS();
+        return true;
+    };
+    return this._interact(Game.portSigil, cb.bind(this));
+}
+
 Player.prototype._openBox = function() {
     var cb = function(what) {
         console.debug("A BOX ("+what.s()+") "+this.s());
@@ -183,7 +229,7 @@ Player.prototype._openBox = function() {
             var d = what._contents.long;
             if (!d) d = what._contents.name;
             str += " You find a "+d+".";
-            this.addEnergy(5);
+            Game.ITEM.INSTA_ENE.resolve();
         } else {
             var d = what._contents.long;
             if (!d) d = what._contents.name;

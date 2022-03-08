@@ -3,29 +3,17 @@ var Game = {
     engine: null,
     // key = "x,y"
     map: {},
+    mapOff: {},
     // entities
     player: null,
     boss: null,
     fish: {},
     ent: {},
+    shopOpen: false,
     // just map keys
     landCells: [],
     waterCells: [],
     toast: "",
-    treasures: {
-        "tome_str": [],
-        "tome_dex": [],
-        "tome_max_energy": [],
-        "lure_std": [],
-        "lure_enh": [],
-        "lure_boss": [],
-        "harpoon_extra": [],
-        "line_strong": [],
-        "superberry": [],
-        "insta_energy": [],
-        "ration": [],
-        "nothing": []
-    },
 
     gameLost: false,
     levelFinished: false,
@@ -167,6 +155,31 @@ var Game = {
         console.debug("game", this);
     },
 
+    closePanel: function() {
+        this.shopOpen = false;
+        this.update();
+    },
+
+    openShop: function() {
+        this._drawPanel();
+        this.shopOpen = true;
+
+        var offx = 4;
+        var offy = 4;
+        var str = "";
+        for (let k of Object.keys(Game.SHOP)) {
+            var inv = Game.SHOP[k];
+            var name = inv.item.name;
+            if (inv.item.long) name = inv.item.long;
+            var plural = "s";
+            if (inv.price == 1) plural = "";
+            str =  "%b{black}%c{yellow}"+k+") %c{grey}Buy "+inv.units+" %c{white}"+name;
+            str += "%c{grey} for %c{chocolate}"+inv.price+"%c{grey} ration"+plural+" of fish.%c{}%b{}";
+            this.display.drawText(offx, offy, str);
+            offy += 2;
+        }
+    },
+
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
         map.randomize(0.5);
@@ -176,6 +189,7 @@ var Game = {
             //console.debug("cb "+x+","+y+":"+value);
             var key = x+","+y;
             if (value) {
+                this.mapOff[key] = this.defaultSigil;
                 this.landCells.push(key);
                 return;
             }
@@ -355,30 +369,42 @@ var Game = {
 
 
     _drawMapTiles: function() {
+        for (var key in this.mapOff) {
+            var parts = key.split(",");
+            var x = parseInt(parts[0]);
+            var y = parseInt(parts[1]);
+            var sigil = this.mapOff[key];
+            this.draw(x, y, sigil, this.bgDefault, this.bgDefault);
+        }
         for (var key in this.map) {
             var parts = key.split(",");
             var x = parseInt(parts[0]);
             var y = parseInt(parts[1]);
             var sigil = this.map[key];
-            this.draw(x, y, sigil)
+            this.draw(x, y, sigil);
         }
     },
 
     _drawEntities: function() {
-        //console.debug("DRW",this.fish);
         for (let i of Object.keys(this.fish)) {
             var f = this.fish[i];
             if (f) f._draw();
         }
-        //console.debug(this.ent);
         for (let ix of Object.keys(this.ent)) {
-            for (let i of this.ent[ix]) {
-                var e = this.ent[i];
+            for (let e of this.ent[ix]) {
                 if (e) e._draw();
             }
         }
         if (this.boss) this.boss._draw();
         if (this.player) this.player._draw();
+    },
+
+    _drawPanel: function() {
+        for(var x=1; x<this.width-1; x++) {
+            for(var y=1; y<this.height-1; y++) {
+                this.draw(x, y, " ", this.fgText, this.bgText);
+            }
+        }
     },
 
     _drawStatus: function() {
@@ -430,19 +456,18 @@ var Game = {
         if (sigil == this.playerSigil) {
             fgc = this.playerColor;
             bgc = this.waterColor;
+        } else if (sigil == this.bossSigil) {
+            fgc = this.bossColor;
+            bgc = this.waterColor;
         } else if (sigil == this.fishSigil) {
             fgc = this.fishColor;
             bgc = this.waterColor;
-            //console.debug("df",x,y, sigil, fgc, bgc);
         } else if (sigil == this.boxSigil) {
             fgc = this.boxColor;
             bgc = this.bgDefault;
         } else if (sigil == this.portSigil) {
             fgc = this.portColor;
             bgc = this.portBgColor;
-        } else if (sigil == this.bossSigil) {
-            fgc = this.bossColor;
-            bgc = this.waterColor;
         } else if (sigil == this.doorSigil) {
             fgc = this.doorColor;
             bgc = this.doorBgColor;
@@ -451,31 +476,39 @@ var Game = {
     }
 };
 Game.ITEM = {};
-Game.ITEM[0] = {id:0, name: "nothing" };
-Game.ITEM[1] = {id:1, name: "Tome of Strength" };
-Game.ITEM[2] = {id:2, name: "Tome of Dexterity" };
-Game.ITEM[3] = {id:3, name: "Tome of Energy" };
-Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure" };
-Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure" };
-Game.ITEM[13] = {id:13, name: "Rainbow Fly" };
-Game.ITEM[18] = {id:18, name: "Harpoon+", long: "" };
-Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line" };
-Game.ITEM[30] = {id:30, name: "Superberry" };
-Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs" };
-Game.ITEM[40] = {id:40, name: "Ration of Fish" };
+Game.ITEM[0] =  {id:0,  name: "nothing",                                    resolve: function()  {} };
+Game.ITEM[1] =  {id:1,  name: "Tome of Strength",                           resolve: function()  { Game.player._strength += 1; } };
+Game.ITEM[2] =  {id:2,  name: "Tome of Dexterity",                          resolve: function()  { Game.player._dexterity += 1; } };
+Game.ITEM[3] =  {id:3,  name: "Tome of Energy",                             resolve: function()  { Game.player._energyMax += 2; } };
+Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_STD, x); } };
+Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
+Game.ITEM[13] = {id:13, name: "Rainbow Fly",                                resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
+Game.ITEM[18] = {id:18, name: "Harpoon+", long: "",                         resolve: function(x) { Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
+Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
+Game.ITEM[30] = {id:30, name: "Superberry",                                 resolve: function(x) { Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
+Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { Game.player.addEnergy(5); } };
+Game.ITEM[40] = {id:40, name: "Ration of Fish",                             resolve: function()  { Game.player.addCurrency(1); } };
 
-Game.ITEM.NOTHING   = Game.ITEM[0];
-Game.ITEM.TOME_STR  = Game.ITEM[1];
-Game.ITEM.TOME_DEX  = Game.ITEM[2];
-Game.ITEM.TOME_ENE  = Game.ITEM[3];
-Game.ITEM.LURE_STD  = Game.ITEM[11];
-Game.ITEM.LURE_ENH  = Game.ITEM[12];
-Game.ITEM.LURE_BOSS = Game.ITEM[13];
+Game.ITEM.NOTHING      = Game.ITEM[0];
+Game.ITEM.TOME_STR     = Game.ITEM[1];
+Game.ITEM.TOME_DEX     = Game.ITEM[2];
+Game.ITEM.TOME_ENE     = Game.ITEM[3];
+Game.ITEM.LURE_STD     = Game.ITEM[11];
+Game.ITEM.LURE_ENH     = Game.ITEM[12];
+Game.ITEM.LURE_BOSS    = Game.ITEM[13];
 Game.ITEM.HARPOON_PLUS = Game.ITEM[18];
 Game.ITEM.LINE_STRONG  = Game.ITEM[19];
 Game.ITEM.SUPERBERRY   = Game.ITEM[30];
 Game.ITEM.INSTA_ENE    = Game.ITEM[31];
 Game.ITEM.RATION       = Game.ITEM[40];
+
+Game.SHOP = {};
+Game.SHOP[1] = {item: Game.ITEM.TOME_DEX, price: 10, units: 1};
+Game.SHOP[2] = {item: Game.ITEM.TOME_STR, price: 10, units: 1};
+Game.SHOP[3] = {item: Game.ITEM.TOME_ENE, price: 5,  units: 1};
+Game.SHOP[4] = {item: Game.ITEM.LURE_STD, price: 1,  units: 3};
+Game.SHOP[5] = {item: Game.ITEM.LURE_BOSS, price: 3, units: 1};
+
 
 var Fish = function(x, y, id, type, isBoss, isPredator) {
     this._x = x;
@@ -541,8 +574,7 @@ Site.prototype.getX = function() { return this._x; }
 Site.prototype.getY = function() { return this._y; }
 Site.prototype._draw = function() {
     var sigil = this._type;
-    var color = Game.fishColor;
-    Game.draw(this._x, this._y, sigil, color);
+    Game.draw(this._x, this._y, sigil);
 }
 Site.prototype.k = function() {
     return this._x+","+this._y;

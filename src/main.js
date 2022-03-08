@@ -157,6 +157,7 @@ var Game = {
 
     closePanel: function() {
         this.shopOpen = false;
+        this.helpOpen = false;
         this.update();
     },
 
@@ -175,6 +176,30 @@ var Game = {
             if (inv.price == 1) plural = "";
             str =  "%b{black}%c{yellow}"+k+") %c{grey}Buy "+inv.units+" %c{white}"+name;
             str += "%c{grey} for %c{chocolate}"+inv.price+"%c{grey} ration"+plural+" of fish.%c{}%b{}";
+            this.display.drawText(offx, offy, str);
+            offy += 2;
+        }
+    },
+
+    openHelp: function() {
+        this._drawPanel();
+        this.helpOpen = true;
+
+        var offx = 4;
+        var offy = 4;
+        var help = [
+            "Help (ESC or H to leave)",
+            "",
+            "arrow keys to move",
+            "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
+            "<enter> to finish the level at a port "+this.portSigil,
+            "<b> to buy items at a port",
+            "<e> to eat fish for energy",
+            "<i> to inspect a fish"
+        ];
+        for (let k of help) {
+            var str = k;
+            console.debug("help",k);
             this.display.drawText(offx, offy, str);
             offy += 2;
         }

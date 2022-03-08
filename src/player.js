@@ -109,6 +109,12 @@ Player.prototype.handleEvent = function(ev) {
                 Game.updS();
             }
         }
+        return unlock(true);
+    } else if (Game.helpOpen) {
+        if (code == "Escape" || code == "KeyH") {
+            Game.closePanel();
+        }
+        return unlock(true);
     }
 
     // enter to finish level, keyCode 13
@@ -119,6 +125,11 @@ Player.prototype.handleEvent = function(ev) {
     // b to buy, keyCode 66
     if (code == "KeyB") {
         var rv = this._useShop();
+        return unlock(rv);
+    }
+    // h for help, keyCode 72
+    if (code == "KeyH") {
+        var rv = this._showHelp();
         return unlock(rv);
     }
     // space for fishing and boxes, keyCode 32
@@ -222,6 +233,13 @@ Player.prototype._useShop = function() {
         return true;
     };
     return this._interact(Game.portSigil, cb.bind(this));
+}
+
+Player.prototype._showHelp = function() {
+    Game.openHelp();
+    Game.toast = "";
+    Game.updS();
+    return true;
 }
 
 Player.prototype._openBox = function() {

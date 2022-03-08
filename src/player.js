@@ -7,6 +7,7 @@ var Player = function(x, y) {
     this._strength = 10;
     this._dexterity = 10;
     this._currency = 0;
+    this._inventory = [];
     this._draw();
 };
 Player.prototype.getSpeed = function() { return 100; }
@@ -17,6 +18,7 @@ Player.prototype.getEnergyMax = function() { return this._energyMax; }
 Player.prototype.getCurrency = function() { return this._currency; }
 Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
+Player.prototype.getInv = function() { return this._inventory; }
 Player.prototype.addEnergy = function(e) {
     this._energy += e;
     if (this._energy > this._energyMax) {

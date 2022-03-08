@@ -15,6 +15,14 @@ var Game = {
     treasures: {
         "tome_str": [],
         "tome_dex": [],
+        "tome_max_energy": [],
+        "lure_std": [],
+        "lure_enh": [],
+        "lure_boss": [],
+        "harpoon_extra": [],
+        "line_strong": [],
+        "superberry": [],
+        "insta_energy": [],
         "ration": [],
         "nothing": []
     },
@@ -26,7 +34,7 @@ var Game = {
     width: 86,
     height: 30,
     fontSize: 22,
-    statusLines: 4,
+    statusLines: 5,
     statusOffsetX: 3,
     statusOffsetY: 1,
 
@@ -75,17 +83,10 @@ var Game = {
         this.display = new ROT.Display(displayOpt);
         document.body.appendChild(this.display.getContainer());
         
-        this._generateMap();
-
-        var scheduler = new ROT.Scheduler.Simple();
-        scheduler.add(this.player, true);
-        //scheduler.add(this.boss, true);
-
-        this.engine = new ROT.Engine(scheduler);
-        this.engine.start();
-
-        console.debug("game", this);
-        this._drawStatus();
+        this.nextLevel();
+        this._generatePlayer(this.waterCells);
+        this.levelStart();
+        this.update();
     },
 
     checkGameState: function() {
@@ -142,6 +143,31 @@ var Game = {
         return false;
     },
 
+    nextLevel: function() {
+        this.map = {};
+        this.landCells = [];
+        this.waterCells = [];
+        this.boss = null;
+        this.fish = {};
+        this.ent = {};
+        this.toast = "";
+        this.levelFinished = false;
+
+
+        this._generateMap();
+    },
+
+    levelStart: function() {
+        var scheduler = new ROT.Scheduler.Simple();
+        scheduler.add(this.player, true);
+        //scheduler.add(this.boss, true);
+
+        this.engine = new ROT.Engine(scheduler);
+        this.engine.start();
+
+        console.debug("game", this);
+    },
+
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
         map.randomize(0.5);
@@ -165,12 +191,13 @@ var Game = {
         this._generatePorts(this.landCells, this.waterCells);
         this._generateDoors(this.waterCells);
         this._generateEntities(this.waterCells, this.landCells);
+    },
 
-        this.update();
+    _generatePlayer: function(waterCells) {
+        this.player = this._createBeing(Player, waterCells);
     },
 
     _generateEntities: function(waterCells, landCells) {
-        this.player = this._createBeing(Player, waterCells);
         var bossId = "boss";
         this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true]);
         this.fish[bossId] = this.boss;
@@ -337,8 +364,8 @@ var Game = {
                 if (e) e._draw();
             }
         }
-        this.boss._draw();
-        this.player._draw();
+        if (this.boss) this.boss._draw();
+        if (this.player) this.player._draw();
     },
 
     _drawStatus: function() {
@@ -357,9 +384,19 @@ var Game = {
         str += " - You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
         str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
+
+        // inventory
+        var inv = this.player.getInv();
+        var invText = "";
+        for (var i=0; i<inv.length; i++) {
+            str += (i+1)+": "+inv[i][0];
+        }
+        this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+1, invText);
+
+        // status messages
         if (this.toast.length > 0) {
             var s2 = "%b{black}"+this.toast+"%b{}";
-            this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+1, s2);
+            this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY+2, s2);
             this.toast = "";
         }
     },
@@ -392,8 +429,10 @@ var Game = {
         }
         this.display.draw(x, y, sigil, fgc, bgc);
     }
-
 };
+Game.ITEM = {};
+Game.ITEM.TOME_STR = {id:0, name: "Tome of Strength" };
+Game.ITEM.LURE_STD = {id:11, name: "Standard Lure" };
 
 var Fish = function(x, y, id, type, isBoss, isPredator) {
     this._x = x;

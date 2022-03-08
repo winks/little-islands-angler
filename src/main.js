@@ -17,6 +17,8 @@ var Game = {
 
     gameLost: false,
     levelFinished: false,
+    gameFinished: false,
+    currentLevel: 1,
 
     // general game params
     width: 86,
@@ -85,10 +87,17 @@ var Game = {
             Game.engine.lock();
             window.removeEventListener("keydown", this);
         }
-        if (this.levelFinished) {
+        if (this.gameFinished) {
             alert("YOU WON");
             Game.engine.lock();
             window.removeEventListener("keydown", this);
+        }
+        if (this.levelFinished) {
+            console.debug("Level finished");
+            this.nextLevel();
+            this.currentLevel++;
+            this.player.levelUp();
+            this.update();
         }
     },
 
@@ -201,7 +210,6 @@ var Game = {
         ];
         for (let k of help) {
             var str = k;
-            console.debug("help",k);
             this.display.drawText(offx, offy, str);
             offy += 2;
         }
@@ -216,16 +224,12 @@ var Game = {
         var help = [
             "Welcome to tbf",
             "",
-            "arrow keys to move",
-            "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
-            "<enter> to finish the level at a port "+this.portSigil,
-            "<b> to buy items at a port",
-            "<e> to eat fish for energy",
-            "<i> to inspect a fish"
+            "catch and kill fish, pay 10 rations of fish at the port to progress",
+            "",
+            "press h for help",
         ];
         for (let k of help) {
             var str = k;
-            console.debug("help",k);
             this.display.drawText(offx, offy, str);
             offy += 2;
         }
@@ -477,6 +481,16 @@ var Game = {
         str += "%b{}";
         this.display.drawText(this.statusOffsetX+2, this.height+this.statusOffsetY, str);
 
+        // Level
+        var lvlText = "Level "+this.currentLevel;
+        var lvlFmt = "%b{black}%c{purple}"+lvlText;
+        this.display.drawText(this.width-lvlText.length-1, this.height, lvlFmt);
+
+        // Help
+        var helpText = "Help: h";
+        var helpFmt = "%b{black}%c{darkslategrey}"+helpText;
+        this.display.drawText(this.width-helpText.length-1, this.height+this.statusLines-1, helpFmt);
+
         // inventory
         var inv = this.player.getInv();
         var invText = "%b{black}";
@@ -530,14 +544,14 @@ Game.ITEM = {};
 Game.ITEM[0] =  {id:0,  name: "nothing",                                    resolve: function()  {} };
 Game.ITEM[1] =  {id:1,  name: "Tome of Strength",                           resolve: function()  { Game.player._strength += 1; } };
 Game.ITEM[2] =  {id:2,  name: "Tome of Dexterity",                          resolve: function()  { Game.player._dexterity += 1; } };
-Game.ITEM[3] =  {id:3,  name: "Tome of Energy",                             resolve: function()  { Game.player._energyMax += 2; } };
+Game.ITEM[3] =  {id:3,  name: "Tome of Energy",                             resolve: function(x) { if (!x) x = 2; Game.player._energyMax += x; } };
 Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_STD, x); } };
 Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
 Game.ITEM[13] = {id:13, name: "Rainbow Fly",                                resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
 Game.ITEM[18] = {id:18, name: "Harpoon+", long: "",                         resolve: function(x) { Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
 Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
 Game.ITEM[30] = {id:30, name: "Superberry",                                 resolve: function(x) { Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
-Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { Game.player.addEnergy(5); } };
+Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { if (!x) x = 5; Game.player.addEnergy(x); } };
 Game.ITEM[40] = {id:40, name: "Ration of Fish",                             resolve: function()  { Game.player.addCurrency(1); } };
 
 Game.ITEM.NOTHING      = Game.ITEM[0];

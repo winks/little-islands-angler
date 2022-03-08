@@ -9,7 +9,7 @@ var Player = function(x, y) {
     this._inventory = [];
     this._activeAction = {};
 
-    this.addItem(Game.ITEM.LURE_STD, 3);
+    this.addItem(Game.ITEM.LURE_STD, 5);
     this.newAction();
     this._draw();
 };
@@ -22,6 +22,25 @@ Player.prototype.getCurrency = function() { return this._currency; }
 Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
 Player.prototype.getInv = function() { return this._inventory; }
+Player.prototype.levelUp = function(e) {
+    var perc = ROT.RNG.getPercentage();
+    var str = "";
+    if (perc <= 33) {
+        Game.ITEM.TOME_DEX.resolve();
+        str += "You got DEX";
+    } else if (perc <= 66) {
+        Game.ITEM.TOME_STR.resolve();
+        str += "You got STR";
+    } else {
+        Game.ITEM.TOME_ENE.resolve(3);
+        Game.ITEM.INSTA_ENE.resolve(3);
+        str += "You got Energy";
+    }
+    var num = 3;
+    this.addItem(Game.ITEM.LURE_STD, num);
+    str += " and "+num+" lures.";
+    Game.toast = str;
+}
 Player.prototype.newAction = function(e) {
     this._activeAction = {
         hooked: false,

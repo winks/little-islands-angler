@@ -115,6 +115,11 @@ Player.prototype.handleEvent = function(ev) {
             Game.closePanel();
         }
         return unlock(true);
+    } else if (Game.introOpen) {
+        if (code == "Escape" || code == "Space" || code == "Enter") {
+            Game.closePanel();
+        }
+        return unlock(true);
     }
 
     // enter to finish level, keyCode 13
@@ -237,6 +242,13 @@ Player.prototype._useShop = function() {
 
 Player.prototype._showHelp = function() {
     Game.openHelp();
+    Game.toast = "";
+    Game.updS();
+    return true;
+}
+
+Player.prototype._showIntro = function() {
+    Game.openIntro();
     Game.toast = "";
     Game.updS();
     return true;

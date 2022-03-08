@@ -75,6 +75,8 @@ var Game = {
         this._generatePlayer(this.waterCells);
         this.startLevel();
         this.update();
+
+        this.player._showIntro();
     },
 
     checkGameState: function() {
@@ -189,6 +191,30 @@ var Game = {
         var offy = 4;
         var help = [
             "Help (ESC or H to leave)",
+            "",
+            "arrow keys to move",
+            "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
+            "<enter> to finish the level at a port "+this.portSigil,
+            "<b> to buy items at a port",
+            "<e> to eat fish for energy",
+            "<i> to inspect a fish"
+        ];
+        for (let k of help) {
+            var str = k;
+            console.debug("help",k);
+            this.display.drawText(offx, offy, str);
+            offy += 2;
+        }
+    },
+
+    openIntro: function() {
+        this._drawPanel();
+        this.helpOpen = true;
+
+        var offx = 4;
+        var offy = 4;
+        var help = [
+            "Welcome to tbf",
             "",
             "arrow keys to move",
             "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,

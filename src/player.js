@@ -37,8 +37,8 @@ Player.prototype.loseCurrency = function(e) {
     this._currency -= e;
 }
 Player.prototype.addItem = function(item, count) {
-    for (var i=0; i<this._inventory; i++) {
-        if (this._inventory[i]._id == item.id) {
+    for (var i=0; i<this._inventory.length; i++) {
+        if (this._inventory[i].i() == item.id) {
             this._inventory[i]._count += count;
             console.debug("II you gain +"+count+" of "+this._inventory[i].s());
             return;
@@ -153,15 +153,19 @@ Player.prototype._usePort = function() {
 Player.prototype._openBox = function() {
     var cb = function(what) {
         console.debug("A BOX ("+what.s()+") "+this.s());
-        var str = "You try to open the box.";
+        var str = "You rummage through the reed.";
         this.loseEnergy(1);
         if (!what._contents || what._contents == Game.ITEM.NOTHING) {
-            str += " You find nothing in it.";
+            str += " You find nothing.";
         } else if (what._contents == Game.ITEM.INSTA_ENE) {
-            str += " You find a "+what._contents.name;
+            var d = what._contents.long;
+            if (!d) d = what._contents.name;
+            str += " You find a "+d+".";
             this.addEnergy(5);
         } else {
-            str += " You find a "+what._contents.name;
+            var d = what._contents.long;
+            if (!d) d = what._contents.name;
+            str += " You find a "+d+".";
             this.addItem(what._contents, 1);
         }
         console.debug("A BOX END"+this.s());

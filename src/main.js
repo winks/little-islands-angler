@@ -127,7 +127,7 @@ var Game = {
             for (let i in this.ent[k]) {
                 if (this.ent[k][i]._id == id) {
                     this.ent[k][i]._contents = null;
-                    console.debug("The box at "+this.ent[k][i].s()+" is now empty.");
+                    console.debug("The box at "+this.ent[k][i].s()+" is now? empty.");
                 }
             }
         }
@@ -244,6 +244,14 @@ var Game = {
                 if (!(key in this.ent)) {
                     this.ent[key] = [];
                 }
+
+                // always one boss lure in the first box
+                if (i == 0) {
+                    var id = "bo"+i;
+                    this.ent[key].push(new Site(xyk[0], xyk[1], id, this.boxSigil, Game.ITEM.LURE_BOSS));
+                    break;
+                }
+
                 var boxPerc = ROT.RNG.getPercentage();
                 var treasure = null;
                 if (boxPerc <= 10) {
@@ -382,9 +390,11 @@ var Game = {
         this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
                 this.playerColor, this.bgText);
 
-        var str = "%b{black}Energy: %c{green}"+this.player.getEnergy()+"%c{}/";
+        var energy = this.player.getEnergy();
+        if (energy < 10) energy = " "+energy;
+        var str = "%b{black}Energy: %c{green}"+energy+"%c{}/";
         str += "%c{green}"+this.player.getEnergyMax()+"%c{}";
-        str += " DEX: %c{purple}"+this.player.getDex()+"%c{}";
+        str += " DEX: %c{chocolate}"+this.player.getDex()+"%c{}";
         str += " STR: %c{red}"+this.player.getStr()+"%c{}";
         str += " - You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";
         str += "%b{}";
@@ -394,14 +404,18 @@ var Game = {
         var inv = this.player.getInv();
         var invText = "%b{black}";
         for (var i=0; i<inv.length; i++) {
-            invText += " "+(i+1)+": "+inv[i].pretty();
+            var c = inv[i].c();
+            //if (c < 2) c = "  ";
+            //else c = "%c{cadetblue}"+c+"x%c{}";
+            c = "%c{cadetblue}"+c+"x%c{}";
+            invText += " %c{darkorchid}"+(i+1)+":%c{}"+c+""+inv[i].pretty();
         }
         invText += "%b{}";
         this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+1, invText);
 
         // status messages
         if (this.toast.length > 0) {
-            var s2 = "%b{black}"+this.toast+"%b{}";
+            var s2 = "%b{black}%c{white}"+this.toast+"%c{}%b{}";
             this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+3, s2);
             this.toast = "";
         }
@@ -441,16 +455,16 @@ Game.ITEM[0] = {id:0, name: "nothing" };
 Game.ITEM[1] = {id:1, name: "Tome of Strength" };
 Game.ITEM[2] = {id:2, name: "Tome of Dexterity" };
 Game.ITEM[3] = {id:3, name: "Tome of Energy" };
-Game.ITEM[11] = {id:11, name: "Standard Lure" };
-Game.ITEM[12] = {id:12, name: "Better Lure" };
+Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure" };
+Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure" };
 Game.ITEM[13] = {id:13, name: "Rainbow Fly" };
-Game.ITEM[18] = {id:18, name: "Harpoon+" };
-Game.ITEM[19] = {id:19, name: "Stronger Line" };
+Game.ITEM[18] = {id:18, name: "Harpoon+", long: "" };
+Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line" };
 Game.ITEM[30] = {id:30, name: "Superberry" };
-Game.ITEM[31] = {id:30, name: "InstaEnergy" };
+Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs" };
 Game.ITEM[40] = {id:40, name: "Ration of Fish" };
 
-Game.ITEM.NOTHING  = Game.ITEM[0];
+Game.ITEM.NOTHING   = Game.ITEM[0];
 Game.ITEM.TOME_STR  = Game.ITEM[1];
 Game.ITEM.TOME_DEX  = Game.ITEM[2];
 Game.ITEM.TOME_ENE  = Game.ITEM[3];

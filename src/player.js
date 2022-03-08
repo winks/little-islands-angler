@@ -3,6 +3,7 @@ var Player = function(x, y) {
     this._x = x;
     this._y = y;
     this._energy = 30;
+    this._energyMax = 30;
     this._strength = 10;
     this._dexterity = 10;
     this._currency = 0;
@@ -12,9 +13,25 @@ Player.prototype.getSpeed = function() { return 100; }
 Player.prototype.getX = function() { return this._x; }
 Player.prototype.getY = function() { return this._y; }
 Player.prototype.getEnergy = function() { return this._energy; }
+Player.prototype.getEnergyMax = function() { return this._energyMax; }
 Player.prototype.getCurrency = function() { return this._currency; }
 Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
+Player.prototype.addEnergy = function(e) {
+    this._energy += e;
+    if (this._energy > this._energyMax) {
+        this._energy = this._energyMax;
+    }
+}
+Player.prototype.loseEnergy = function(e) {
+    this._energy -= e;
+}
+Player.prototype.addCurrency = function(e) {
+    this._currency += e;
+}
+Player.prototype.loseCurrency = function(e) {
+    this._currency -= e;
+}
 
 Player.prototype.act = function() {
     Game.engine.lock();
@@ -24,42 +41,38 @@ Player.prototype.act = function() {
 Player.prototype.handleEvent = function(ev) {
     var code = ev.code;
 
+    var unlock = function(rv) {
+        if (rv) {
+            Game.updS();
+        }
+        window.removeEventListener("keydown", this);
+        Game.engine.unlock();
+    }
+
     // enter to finish level, keyCode 13
     if (code == "Enter" || code == "NumpadEnter") {
         var rv = this._usePort();
-        if (rv) {
-            Game.updS();
-            window.removeEventListener("keydown", this);
-            Game.engine.unlock();
-        }
-        return;
+        return unlock(rv);
     }
     // space for fishing and boxes, keyCode 32
     if (code == "Space") {
         var rv = this._startEncounter();
         if (rv) {
-            Game.updS();
-            window.removeEventListener("keydown", this);
-            Game.engine.unlock();
+            unlock(rv);
             return;
         }
         rv = this._openBox();
-        if (rv) {
-            Game.updS();
-            window.removeEventListener("keydown", this);
-            Game.engine.unlock();
-        }
-        return;
+        return unlock(rv);
     }
     // e to eat, keyCode 69
     if (code == "KeyE") {
         var rv = this._fillEnergy();
-        if (rv) {
-            Game.updS();
-            window.removeEventListener("keydown", this);
-            Game.engine.unlock();
-        }
-        return;
+        return unlock(rv);
+    }
+    // i to inspect, keyCode 73
+    if (code == "KeyI") {
+        var rv = this._inspect();
+        return unlock(rv);
     }
 
     // arrow keys and NUMPAD
@@ -97,8 +110,7 @@ Player.prototype.handleEvent = function(ev) {
     this._x = newX;
     this._y = newY;
     Game.update();
-    window.removeEventListener("keydown", this);
-    Game.engine.unlock();
+    return unlock(false);
 }
 
 Player.prototype._draw = function() {
@@ -126,7 +138,7 @@ Player.prototype._openBox = function() {
     var cb = function(what) {
         console.debug("A BOX ("+what.s()+") "+this.s());
         var str = "You try to open the box.";
-        this._energy -= 1;
+        this.loseEnergy(1);
         if (!what._contents || what._contents == "nothing") {
             str += " You find nothing in it.";
         } else if (what._contents == "tome_str") {
@@ -137,7 +149,7 @@ Player.prototype._openBox = function() {
             this._dexterity += 1;
         } else if (what._contents == "ration") {
             str += " You find a ration of fish.";
-            this._currency += 1;
+            this.addCurrency(1);
         }
         console.debug("A BOX END"+this.s());
         Game.emptyBox(what._id);
@@ -192,7 +204,7 @@ Player.prototype._encounter = function(enemy) {
     var success = false;
     var hookedPerc = null;
     while (!success) {
-        this._energy -= 1;
+        this.loseEnergy(1);
         Game.updS();
         console.debug("!! "+this.s()+" vs "+enemy.s());
 
@@ -213,15 +225,22 @@ Player.prototype._encounter = function(enemy) {
                 } else if (strDiff >= -1 && strDiff < 2) {
                     enemy._strength -= 1;
                     console.debug("!! Weakened "+enemy.s());
+                    Game.toast = "The fish is hooked but you could not reel it in."; // !!!
+                    Game.update();
                     continue;
                 } else if (strDiff <= -2) {
                     var catchPerc = ROT.RNG.getPercentage();
                     if (catchPerc <= 50) {
-                        this._energy -= 1;
+                        //this._energy -= 1;
+                        enemy._strength -= 1;
+                        console.debug("!! Weakened "+enemy.s());
+                        Game.toast = "The fish is hooked but you could not reel it in."; // !!!
                         Game.update();
                         continue;
                     } else {
-                        console.debug("!! Fatal TODO");
+                        console.debug("!! Fatal: bait gone");
+                        Game.toast = "The fish got away with the bait."; // !!!
+                        // TODO -1 bait
                         return true;
                     }
                 } else {
@@ -229,28 +248,29 @@ Player.prototype._encounter = function(enemy) {
                     return true;
                 }
             } else {
-                continue;
+                Game.toast = "The fish did not bite.";
+                return false;
             }
         } else if (dexDiff == 1 || dexDiff == 0) {
-            var hookPerc = ROT.RNG.getPercentage();
-            if (hookPerc <= 50) {
-                hooked = true;
-                continue;
-            } else {
-                console.debug("!! Fish got away "+hookPerc+"/50");
-                Game.toast = "The fish got away.";
-                return true;
-            }
+            //var hookPerc = ROT.RNG.getPercentage();
+            //if (hookPerc <= 50) {
+            //    hooked = true;
+            //    continue;
+            //} else {
+            //    console.debug("!! Fish got away "+hookPerc+"/50");
+            //    Game.toast = "The fish got away.";
+            //    return true;
+            //}
         } else if (dexDiff == -1 || dexDiff == -2) {
-            var hookPerc = ROT.RNG.getPercentage();
-            if (hookPerc <= 20) {
-                hooked = true;
-                continue;
-            } else {
-                console.debug("!! Fish got away "+hookPerc+"/20");
-                Game.toast = "The fish got away.";
-                return true;
-            }
+            //var hookPerc = ROT.RNG.getPercentage();
+            //if (hookPerc <= 20) {
+            //    hooked = true;
+            //    continue;
+            //} else {
+            //    console.debug("!! Fish got away "+hookPerc+"/20");
+            //    Game.toast = "The fish got away.";
+            //    return true;
+            //}
         } else {
             console.debug("!! Fish too strong");
             Game.toast = "The fish is too strong.";
@@ -261,9 +281,9 @@ Player.prototype._encounter = function(enemy) {
     Game.toast = "You caught the fish!";
     var rewardPerc = ROT.RNG.getPercentage();
     if (rewardPerc <= 50) {
-        this._currency += 1;
+        this.addCurrency(1);
     } else {
-        this._currency += 2;
+        this.addCurrency(2);
     }
     Game.removeEnemy(enemy);
     return true;
@@ -274,7 +294,19 @@ Player.prototype._fillEnergy = function() {
         // @TODO beep
         return false;
     }
-    this._currency -= 1;
-    this._energy += 5;
+    this.loseCurrency(1);
+    this.addEnergy(5);
     return true;
+}
+
+Player.prototype._inspect = function() {
+    var fi = Game.hasFishAt(this.getX(), this.getY());
+    if (fi !== false) {
+        var f = Game.fish[fi];
+        console.debug("__", f);
+        var str = "TODO fish "+f.getStr();
+        Game.toast = str;
+        return true;
+    }
+    return false;
 }

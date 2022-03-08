@@ -350,7 +350,8 @@ var Game = {
         this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
                 this.playerColor, this.bgText);
 
-        var str = "%b{black}Energy: %c{green}"+this.player.getEnergy()+"%c{}";
+        var str = "%b{black}Energy: %c{green}"+this.player.getEnergy()+"%c{}/";
+        str += "%c{green}"+this.player.getEnergyMax()+"%c{}";
         str += " DEX: %c{purple}"+this.player.getDex()+"%c{}";
         str += " STR: %c{red}"+this.player.getStr()+"%c{}";
         str += " - You have %c{yellow}"+this.player.getCurrency()+"%c{} rations of fish.";

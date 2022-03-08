@@ -1,4 +1,3 @@
-
 var Player = function(x, y) {
     this._x = x;
     this._y = y;
@@ -270,12 +269,33 @@ Player.prototype._interact = function(checkType, callbackFn) {
     return false;
 }
 
+Player.prototype._hasCorrectLure = function(fish) {
+    var lures = [Game.ITEM.LURE_STD, Game.ITEM.LURE_ENH];
+    if (fish._isBoss) {
+        lures = [Game.ITEM.LURE_BOSS];
+    }
+    for (var i=0; i<this._inventory.length; i++) {
+        for (let lu of lures) {
+            console.debug("HCL ",i,lu);
+            if (this._inventory[i].i() == lu.id && this._inventory[i].c() > 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 Player.prototype._startEncounter = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
     if (fi !== false) {
         var f = Game.fish[fi];
         console.debug("! "+f.s());
-        return this._encounterStepDex(f);
+        if (this._hasCorrectLure(f)) {
+            return this._encounterStepDex(f);
+        } else {
+            Game.toast = "You don't have the correct lure.";
+            return true;
+        }
     }
     return false;
 }
@@ -300,6 +320,7 @@ Player.prototype._encounterStepDex = function(enemy) {
             this.addCurrency(2);
         }
         Game.removeEnemy(enemy);
+        if (enemy._isBoss) Game.boss = null;
         return true;
     };
 
@@ -382,8 +403,11 @@ Player.prototype._encounterStepStr = function(perc) {
                 this._activeAction.finished = false;
                 console.debug("!! Fatal: bait gone");
                 Game.toast = "The fish got away with the bait.";
-                // TODO -1 CORRECT bait
-                this.removeItem(Game.ITEM.LURE_STD, 1);
+                if (this._activeAction.enemy._isBoss) {
+                    this.removeItem(Game.ITEM.LURE_BOSS, 1);
+                } else {
+                    this.removeItem(Game.ITEM.LURE_STD, 1);
+                }
                 return true;
             }
         } else {

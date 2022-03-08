@@ -556,8 +556,10 @@ Fish.prototype.k = function() {
     return this._x+","+this._y;
 }
 Fish.prototype.s = function(prefix, suffix) {
-    var msg = "[Fish  : DEX: "+this._dexterity+" STR: "+this._strength+" @ ("+this.k()+")]";
+    var msg = "[Fish "+this._id+": DEX: "+this._dexterity+" STR: "+this._strength+" @ ("+this.k()+")";
+    if (this._isPredator) msg += " HP:"+this._hp+"";
     if (this._isBoss) msg += " BOSS";
+    msg += "]";
     if (prefix) msg = prefix + msg;
     if (suffix) msg = msg + suffix;
     return msg;

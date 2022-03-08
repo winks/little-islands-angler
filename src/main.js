@@ -517,6 +517,7 @@ var Fish = function(x, y, id, type, isBoss, isPredator) {
     this._type = type;
     this._isBoss = false;
     this._isPredator = false;
+    this._hp = 0;
     if (isBoss === true) {
         this._isBoss = true;
     }
@@ -528,9 +529,9 @@ var Fish = function(x, y, id, type, isBoss, isPredator) {
     if (this._isBoss) {
         this._strength += 2;
         this._dexterity += 2;
-    } else if (this._isPredator) {
-        this._strength += 1;
-        this._dexterity += 1;
+    }
+    if (isPredator) {
+        this._hp = Math.floor((this._strength + this._dexterity)/2) - 3;
     }
     this._draw();
 }

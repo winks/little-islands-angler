@@ -567,3 +567,6 @@ InventoryItem.prototype.s = function() {
 InventoryItem.prototype.pretty = function() {
     return Game.ITEM[this._id].name;
 }
+InventoryItem.prototype.slug = function() {
+    return Game.ITEM[this._id].name.toLowerCase().replace(" ", "-");
+}

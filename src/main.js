@@ -1,7 +1,7 @@
 var Game = {
     display: null,
     engine: null,
-    gui: false,
+    gui: true,
     tileSet: null,
     // key = "x,y"
     map: {},
@@ -54,6 +54,7 @@ var Game = {
     playerSigil: "@",
     predatorSigil: "!",
     portSigil: "#",
+    voidSigil: ")",
 
     fishTypes: ["salmon", "tuna", "trout"],
     predTypes: ["pred1", "pred2"],
@@ -85,7 +86,6 @@ var Game = {
     },
 
     init: function() {
-        this.gui = true;
         var displayOpt = {};
         if (!this.gui) {
             this.width = 80;
@@ -109,15 +109,33 @@ var Game = {
                 tileHeight: ih,
                 tileSet: this.tileSet,
                 tileMap: {
-                    " ": [0, 0],
-                    ".": [1*iw, 0],
-                    "$": [2*iw, 0],
-                    "#": [3*iw, 0],
+                    "_": [0, 0],
+                    "\"": [1*iw, 0],
+                    "^": [2*iw, 0],
+                    "/": [3*iw, 0],
 
-                    "%": [0, 1*ih],
-                    "!": [1*iw, 1*ih],
-                    "*": [2*iw, 1*ih],
-                    "@": [3*iw, 1*ih]
+                    "[": [4*iw, 0],
+                    "]": [5*iw, 0],
+                    "{": [6*iw, 0],
+                    "}": [7*iw, 0],
+
+                    "(": [8*iw, 0],
+                    ")": [9*iw, 0],
+
+                    " ": [0, 1*ih],
+                    ".": [1*iw, 1*ih],
+                    "$": [2*iw, 1*ih],
+                    "#": [3*iw, 1*ih],
+
+                    "%": [4*iw, 1*ih],
+                    "!": [5*iw, 1*ih],
+                    "*": [6*iw, 1*ih],
+                    "@": [7*iw, 1*ih],
+
+                    "A": [8*iw, 1*ih],
+                    "B": [9*iw, 1*ih],
+                    "C": [10*iw, 1*ih],
+
                     //,"^": [103, 103]
                 },
                 width: this.width,
@@ -137,22 +155,7 @@ var Game = {
         this.startLevel();
 
         this.update();
-        //this.display.draw(0, 0, "@");
-        //this.display.draw(1, 0, "%");
-        //this.display.draw(2, 0, "!");
-        //this.display.draw(3, 0, "*");
-        //this.display.draw(4, 0, " ");
-        //this.display.draw(5, 0, ".");
-        //this.display.draw(6, 0, "$");
-        //this.display.draw(7, 0, "#");
-
-        this.display.draw(1, this.height+0, "@");
-        this.display.draw(1, this.height+1, "@");
-        this.display.draw(1, this.height+2, "@");
-        if (!this.gui) {
-            this.player._showIntro();
-        }
-        //this.display.drawText(20, 5, "This line of text is very long.", 16);
+        this.player._showIntro();
     },
 
     checkGameState: function() {
@@ -247,6 +250,11 @@ var Game = {
     closePanel: function() {
         this.shopOpen = false;
         this.helpOpen = false;
+        var elems = document.getElementsByClassName("panel");
+        for (let el of elems) {
+            console.debug(el);
+            el.remove();
+        }
         this.update();
     },
 
@@ -255,19 +263,31 @@ var Game = {
         this.shopOpen = true;
         this._drawPanel();
 
-        var offx = 4;
-        var offy = 4;
-        var str = "";
-        for (let k of Object.keys(Game.SHOP)) {
-            var inv = Game.SHOP[k];
-            var name = inv.item.name;
-            if (inv.item.long) name = inv.item.long;
-            var plural = "s";
-            if (inv.price == 1) plural = "";
-            str =  "%b{black}%c{yellow}"+k+") %c{grey}Buy "+inv.units+" %c{white}"+name;
-            str += "%c{grey} for %c{chocolate}"+inv.price+"%c{grey} ration"+plural+" of fish.%c{}%b{}";
-            this.display.drawText(offx, offy, str);
-            offy += 2;
+        if (this.gui) {
+            var str = "shop";
+            let shopDiv = document.createElement('div');
+            shopDiv.className = 'panel shop-panel';
+            shopDiv.innerHTML = str;
+            document.body.appendChild(shopDiv);
+
+            shopDiv.style.position = "absolute";
+            shopDiv.style.top = "64px";
+            shopDiv.style.left = "64px";
+        } else {
+            var offx = 4;
+            var offy = 4;
+            var str = "";
+            for (let k of Object.keys(Game.SHOP)) {
+                var inv = Game.SHOP[k];
+                var name = inv.item.name;
+                if (inv.item.long) name = inv.item.long;
+                var plural = "s";
+                if (inv.price == 1) plural = "";
+                str =  "%b{black}%c{yellow}"+k+") %c{grey}Buy "+inv.units+" %c{white}"+name;
+                str += "%c{grey} for %c{chocolate}"+inv.price+"%c{grey} ration"+plural+" of fish.%c{}%b{}";
+                this.display.drawText(offx, offy, str);
+                offy += 2;
+            }
         }
     },
 
@@ -276,22 +296,49 @@ var Game = {
         this.helpOpen = true;
         this._drawPanel();
 
-        var offx = 4;
-        var offy = 4;
-        var help = [
-            "Help (ESC or H to leave)",
-            "",
-            "arrow keys to move",
-            "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
-            "<enter> to finish the level at a port "+this.portSigil,
-            "<b> to buy items at a port",
-            "<e> to eat fish for energy",
-            "<i> to inspect a fish"
-        ];
-        for (let k of help) {
-            var str = "%b{black}%c{grey}"+k;
-            this.display.drawText(offx, offy, str);
-            offy += 2;
+        if (this.gui) {
+            var str = "<span>";
+            str += "Help (ESC or H to leave)<br><br>";
+            str += "arrow keys to move";
+            str += "<br />"
+            str += "space or f to catch fish";
+            str += "<br />"
+            str += "enter to finish the level at a port";
+            str += "<br />"
+            str += "b to buy items at a port";
+            str += "<br />"
+            str += "e to eat fish for energy";
+            str += "<br />"
+            str += "i to inspect a fish";
+            str += "<br />"
+
+            let helpDiv = document.createElement('div');
+            helpDiv.className = 'panel help-panel';
+            helpDiv.innerHTML = str;
+            document.body.appendChild(helpDiv);
+
+            helpDiv.style.position = "absolute";
+            helpDiv.style.top = "64px";
+            helpDiv.style.left = "64px";
+
+        } else {
+            var offx = 4;
+            var offy = 4;
+            var help = [
+                "Help (ESC or H to leave)",
+                "",
+                "arrow keys to move",
+                "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
+                "<enter> to finish the level at a port "+this.portSigil,
+                "<b> to buy items at a port",
+                "<e> to eat fish for energy",
+                "<i> to inspect a fish"
+            ];
+            for (let k of help) {
+                var str = "%b{black}%c{grey}"+k;
+                this.display.drawText(offx, offy, str);
+                offy += 2;
+            }
         }
     },
 
@@ -300,19 +347,31 @@ var Game = {
         this._drawPanel();
         this.introOpen = true;
 
-        var offx = 4;
-        var offy = 4;
-        var help = [
-            "Welcome to tbf",
-            "",
-            "catch and kill fish, pay 10 rations of fish at the port to progress",
-            "",
-            "press h for help",
-        ];
-        for (let k of help) {
-            var str = "%b{black}%c{grey}"+k;
-            this.display.drawText(offx, offy, str);
-            offy += 2;
+        if (this.gui) {
+            var str = "intro";
+            let introDiv = document.createElement('div');
+            introDiv.className = 'panel intro-panel';
+            introDiv.innerHTML = str;
+            document.body.appendChild(introDiv);
+
+            introDiv.style.position = "absolute";
+            introDiv.style.top = "64px";
+            introDiv.style.left = "64px";
+        } else {
+            var offx = 4;
+            var offy = 4;
+            var help = [
+                "Welcome to tbf",
+                "",
+                "catch and kill fish, pay 10 rations of fish at the port to progress",
+                "",
+                "press h for help",
+            ];
+            for (let k of help) {
+                var str = "%b{black}%c{grey}"+k;
+                this.display.drawText(offx, offy, str);
+                offy += 2;
+            }
         }
     },
 
@@ -542,18 +601,84 @@ var Game = {
     },
 
     _drawPanel: function() {
-        for(var x=1; x<this.width-1; x++) {
-            for(var y=1; y<this.height-1; y++) {
-                this.draw(x, y, " ", this.fgText, this.bgText);
+        if (this.gui) {
+            for(var x=1; x<this.width-1; x++) {
+                for(var y=1; y<this.height-1; y++) {
+                    console.debug(x,y,this.voidSigil);
+                    this.draw(x, y, this.voidSigil);
+                }
+            }
+        } else {
+            for(var x=1; x<this.width-1; x++) {
+                for(var y=1; y<this.height-1; y++) {
+                    this.draw(x, y, " ", this.fgText, this.bgText);
+                }
             }
         }
     },
 
     _drawStatus: function() {
         if (this.gui) {
-            // @FIXME
+            var cc = document.getElementsByTagName('canvas');
+            if (cc.length < 1) {
+                return;
+            }
+            var energy = this.player.getEnergy();
+            if (energy < 10) energy = " "+energy;
+            var str = "<span>";
+            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-energy' />";
+            str += " <span class='t-green'>"+energy+"/"+this.player.getEnergyMax()+"</span> ";
+            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-dex' />";
+            str += " <span class='t-brown'>"+this.player.getDex()+"</span> ";
+            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-str' />";
+            str += " <span class='t-red'>"+this.player.getStr()+"</span> ";
+            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
+            str += " <span class='t-yellow'>"+this.player.getCurrency()+"</span> ";
+
+            str += "<img src='assets/t.gif' width='100' height='32' />";
+            str += " <span class='t-purple'>Level "+this.currentLevel+"</span> ";
+            str += " <span class='t-dsl'>Help: h </span> ";
+            str += "<br />"
+            str += "<img src='assets/t.gif' width='8' height='32' />";
+
+            var inv = this.player.getInv();
+            for (var i=0; i<inv.length; i++) {
+                var c = inv[i].c();
+                if (i > 0) {
+                    str += "<span class='t-nums'>|</span> ";
+                }
+                str += "<span class='t-num'>["+(i+1)+"]</span> ";
+                str += "<span class='t-vol'>"+c+"x</span>";
+                var nx = inv[i].slug();
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-"+nx+"' />";
+            }
+            str += "<br />"
+            str += "<img src='assets/t.gif' width='9' height='32' />";
+
+            str += "<span class='t-white'>";
+            // status messages
+            if (this.toast.length > 0) {
+                str += this.toast;
+                this.toast = "";
+            }
+            str += "&nbsp;</span>";
+
+            str += "</span>";
+
+            let statusDiv = document.createElement('div');
+            statusDiv.className = 'status';
+            statusDiv.innerHTML = str;
+            document.body.appendChild(statusDiv);
+
+            var ccc = cc[0];
+            statusDiv.style.position = "absolute";
+            statusDiv.style.top = (ccc.height-3*32+12)+"px";
+            statusDiv.style.left = "22px";
+
             return;
         }
+
+        // non-gui
         for(var x=0;x<this.width;x++) {
             for(var y=this.height;y<this.height+this.statusLines;y++) {
                 this.draw(x, y, " ", this.fgText, this.bgText);

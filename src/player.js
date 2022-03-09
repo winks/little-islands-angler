@@ -364,7 +364,7 @@ Player.prototype._encounterStepDex = function(enemy) {
         } else {
             Game.toast = "You caught the fish!";
             if (this._activeAction.enemy._isBoss) {
-                Game.engine._scheduler.remove(Game.boss);
+                Game.removeEnemy(Game.boss);
             }
             this.newAction();
         }

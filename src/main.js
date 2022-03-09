@@ -37,6 +37,7 @@ var Game = {
     numDoors: 0,
 
     volCurrencyToExit: 10,
+    huntDistance: 5,
 
     // sigils
     defaultSigil: " ",
@@ -120,6 +121,7 @@ var Game = {
 
     removeEnemy: function(fish) {
         delete this.fish[fish._id];
+        this.engine._scheduler.remove(fish);
     },
 
     emptyBox: function(id) {
@@ -135,10 +137,10 @@ var Game = {
     },
 
     hasFishAt: function(x, y) {
-        for (let i of Object.keys(this.fish)) {
-            var f = this.fish[i];
+        for (let fi of Object.keys(this.fish)) {
+            var f = this.fish[fi];
             if (x == f.getX() && y == f.getY()) {
-                return i;
+                return fi;
             }
         }
         return false;
@@ -625,7 +627,14 @@ Fish.prototype.act = function() {
             if (y > Game.height-1) y = Game.height - 2;
             return [x, y];
     };
-    var move = function() {
+    var doMove = function(x, y) {
+        Game.draw(this._x, this._y, Game.defaultSigil);
+        this._x = x;
+        this._y = y;
+        this._draw();
+        Game.player._draw();
+    };
+    var moveRandom = function() {
         var valid = false;
         while (!valid) {
             var dest = getNextCandidate.bind(this)();
@@ -637,7 +646,7 @@ Fish.prototype.act = function() {
                 // do not swim into other fish
                 var fi = Game.hasFishAt(dest[0], dest[1]);
                 if (fi !== false && Game.fish[fi].id() != this.id()) {
-                    console.debug("avoided fish collision")
+                    //console.debug("avoided fish collision")
                     valid = false;
                 }
                 // do not swim into the player
@@ -645,25 +654,65 @@ Fish.prototype.act = function() {
                     valid = false;
                 }
             } else {
-                console.debug("move f to land avoided")
+                //console.debug("move f to land avoided")
             }
         }
-        Game.draw(this._x, this._y, Game.defaultSigil);
-        this._x = dest[0];
-        this._y = dest[1];
-        this._draw();
-        Game.player._draw();
+        doMove.bind(this)(dest[0], dest[1]);
     };
+    var hunt = function() {
+        var passableCallback = function(x, y) {
+            return (x+","+y in Game.map);
+        }
+        for (let fi of Object.keys(Game.fish)) {
+            var f = Game.fish[fi];
+            if (f._isPredator || f._isBoss) continue;
+            var x = f.getX();
+            var y = f.getY();
+            var astar = new ROT.Path.AStar(x, y, passableCallback, {topology:4});
+            var path = [];
+            var pathCallback = function(x, y) {
+                path.push([x, y]);
+            }
+            astar.compute(this._x, this._y, pathCallback);
+            path.shift();
+            if (path.length == 1) {
+                // catch the prey
+                console.debug(">> ",this.id()," hunted down ",f.id(),"=",path.length,path,this.k(),f.k());
+                if (Game.toast.length == 0) {
+                    Game.toast = "A predatory fish got to its prey."
+                    Game.updS();
+                }
+                x = path[0][0];
+                y = path[0][1];
+                Game.removeEnemy(f)
+                doMove.bind(this)(x, y);
+                return true;
+            } else if (path.length > 0 && path.length <= Game.huntDistance) {
+                // move towards prey
+                x = path[0][0];
+                y = path[0][1];
+                doMove.bind(this)(x, y);
+                return true;
+            }
+        }
+        return false;
+    };
+
     var movePerc = ROT.RNG.getPercentage();
     if (this._isBoss) {
         if (movePerc <= 25) {
-            move.bind(this)();
+            moveRandom.bind(this)();
         }
     } else if (this._isPredator) {
-
+        if (movePerc <= 50) {
+            var rv = hunt.bind(this)();
+            if (!rv) {
+                moveRandom.bind(this)();
+            }
+        }
     } else {
         if (movePerc <= 50) {
-            move.bind(this)();
+            moveRandom.bind(this)();
         }
     }
 }

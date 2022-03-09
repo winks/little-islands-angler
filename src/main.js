@@ -157,8 +157,8 @@ var Game = {
 
     startLevel: function() {
         var scheduler = new ROT.Scheduler.Simple();
+        scheduler.add(this.boss, true);
         scheduler.add(this.player, true);
-        //scheduler.add(this.boss, true);
 
         this.engine = new ROT.Engine(scheduler);
         this.engine.start();
@@ -209,7 +209,7 @@ var Game = {
             "<i> to inspect a fish"
         ];
         for (let k of help) {
-            var str = k;
+            var str = "%b{black}%c{grey}"+k;
             this.display.drawText(offx, offy, str);
             offy += 2;
         }
@@ -229,7 +229,7 @@ var Game = {
             "press h for help",
         ];
         for (let k of help) {
-            var str = k;
+            var str = "%b{black}%c{grey}"+k;
             this.display.drawText(offx, offy, str);
             offy += 2;
         }
@@ -600,6 +600,59 @@ var Fish = function(x, y, id, type, isBoss, isPredator) {
     }
     this._draw();
 }
+Fish.prototype.act = function() {
+    if (this._x == Game.player.getX() && this._y == Game.player.getY()) {
+        console.debug("nope");
+        return;
+    }
+    var getNextCandidate = function() {
+        var dirIdx = Math.floor(ROT.RNG.getUniform() * 8);
+            var dir = ROT.DIRS[8][dirIdx];
+            var x = this._x + dir[0];
+            var y = this._y + dir[1];
+            // bounding
+            if (x < 0) x = 1;
+            if (x > Game.width-1) x = Game.width - 2;
+            if (y < 0) y = 1;
+            if (y > Game.height-1) y = Game.height - 2;
+            return [x, y];
+    };
+    var move = function() {
+        var valid = false;
+        while (!valid) {
+            var dest = getNextCandidate.bind(this)();
+            //console.debug("move f from "+this.k()+" to ",dest);
+            // land
+            var newKey = dest[0]+","+dest[1];
+            if (newKey in Game.map) {
+                valid = true;
+                // do not swim into other fish
+                var fi = Game.hasFishAt(dest[0], dest[1]);
+                if (fi !== false && Game.fish[fi].id() != this.id()) {
+                    console.debug("avoided fish collision")
+                    valid = false;
+                }
+                // do not swim into the player
+                if (dest[0] == Game.player.getX() && dest[0] == Game.player.getY()) {
+                    valid = false;
+                }
+            } else {
+                console.debug("move f to land avoided")
+            }
+        }
+        Game.draw(this._x, this._y, Game.defaultSigil);
+        this._x = dest[0];
+        this._y = dest[1];
+        this._draw();
+        Game.player._draw();
+    };
+    var movePerc = ROT.RNG.getPercentage();
+    if (this._isBoss) {
+        if (movePerc <= 75) {
+            move.bind(this)();
+        }
+    }
+}
 Fish.prototype.getSpeed = function() { return 100; }
 Fish.prototype.getStr = function() { return this._strength; }
 Fish.prototype.getDex = function() { return this._dexterity; }
@@ -629,6 +682,7 @@ Fish.prototype.s = function(prefix, suffix) {
     if (suffix) msg = msg + suffix;
     return msg;
 }
+Fish.prototype.id = function() { return this._id; }
 
 var Site = function(x, y, id, type, contents) {
     this._x = x;

@@ -65,7 +65,7 @@ Player.prototype.loseCurrency = function(e) {
 }
 Player.prototype.addItem = function(item, count) {
     for (var i=0; i<this._inventory.length; i++) {
-        if (this._inventory[i].i() == item.id) {
+        if (this._inventory[i].id() == item.id) {
             this._inventory[i]._count += count;
             console.debug("II you gain +"+count+" of "+this._inventory[i].s());
             return;
@@ -77,7 +77,7 @@ Player.prototype.addItem = function(item, count) {
 }
 Player.prototype.removeItem = function(item, count) {
     for (var i=0; i<this._inventory.length; i++) {
-        if (this._inventory[i].i() == item.id) {
+        if (this._inventory[i].id() == item.id) {
             this._inventory[i]._count -= count;
             console.debug("II you lose -"+count+" of "+this._inventory[i].s());
             return
@@ -326,7 +326,7 @@ Player.prototype._hasCorrectLure = function(fish) {
     for (var i=0; i<this._inventory.length; i++) {
         for (let lu of lures) {
             console.debug("HCL ",i,lu);
-            if (this._inventory[i].i() == lu.id && this._inventory[i].c() > 0) {
+            if (this._inventory[i].id() == lu.id && this._inventory[i].c() > 0) {
                 return true;
             }
         }
@@ -359,6 +359,9 @@ Player.prototype._encounterStepDex = function(enemy) {
             Game.toast = "You killed the fish!";
         } else {
             Game.toast = "You caught the fish!";
+            if (this._activeAction.enemy._isBoss) {
+                Game.engine._scheduler.remove(Game.boss);
+            }
         }
 
         this.newAction();
@@ -546,7 +549,7 @@ var InventoryItem = function(id, count) {
     this._id = id;
     this._count = count;
 }
-InventoryItem.prototype.i = function() { return this._id; }
+InventoryItem.prototype.id = function() { return this._id; }
 InventoryItem.prototype.c = function() { return this._count; }
 InventoryItem.prototype.s = function() {
     return "[InvItem id:"+this._id+" c:"+this._count+" x:"+Game.ITEM[this._id].name+"]";

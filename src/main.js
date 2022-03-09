@@ -158,6 +158,9 @@ var Game = {
     startLevel: function() {
         var scheduler = new ROT.Scheduler.Simple();
         scheduler.add(this.boss, true);
+        for (let fi of Object.keys(this.fish)) {
+            scheduler.add(this.fish[fi], true);
+        }
         scheduler.add(this.player, true);
 
         this.engine = new ROT.Engine(scheduler);
@@ -648,7 +651,13 @@ Fish.prototype.act = function() {
     };
     var movePerc = ROT.RNG.getPercentage();
     if (this._isBoss) {
-        if (movePerc <= 75) {
+        if (movePerc <= 25) {
+            move.bind(this)();
+        }
+    } else if (this._isPredator) {
+
+    } else {
+        if (movePerc <= 50) {
             move.bind(this)();
         }
     }

@@ -15,6 +15,7 @@ var Game = {
     // just map keys
     landCells: [],
     waterCells: [],
+    fixEdge: true,
     toast: "",
 
     gameLost: false,
@@ -45,6 +46,7 @@ var Game = {
     boxSigil: "$",
     doorSigil: "^",
     fishSigil: "%",
+    landSigil: ".",
     playerSigil: "@",
     predatorSigil: "!",
     portSigil: "#",
@@ -248,13 +250,18 @@ var Game = {
     _generateMap: function() {
         var map = new ROT.Map.Cellular(this.width, this.height, { connected: true });
         map.randomize(0.5);
-        for (var i=0; i<4; i++) map.create();
+        for (var i=0; i<8; i++) map.create();
 
         var digCallback = function(x, y, value) {
             //console.debug("cb "+x+","+y+":"+value);
             var key = x+","+y;
             if (value) {
-                this.mapOff[key] = this.defaultSigil;
+                if (this.fixEdge && (x == 0 || y == 0 || x == this.width-1 || y == this.height-1)) {
+                    this.map[key] = this.defaultSigil;
+                    this.waterCells.push(key);
+                    return;
+                }
+                this.mapOff[key] = this.landSigil;
                 this.landCells.push(key);
                 return;
             }
@@ -264,6 +271,7 @@ var Game = {
 
         map.create(digCallback.bind(this));
         console.debug("map", map);
+        map.connect();
 
         this._generateBoxes(this.landCells, this.waterCells);
         this._generatePorts(this.landCells, this.waterCells);
@@ -439,7 +447,7 @@ var Game = {
             var x = parseInt(parts[0]);
             var y = parseInt(parts[1]);
             var sigil = this.mapOff[key];
-            this.draw(x, y, sigil, this.bgDefault, this.bgDefault);
+            this.draw(x, y, sigil, this.waterColor, this.bgDefault);
         }
         for (var key in this.map) {
             var parts = key.split(",");

@@ -325,7 +325,6 @@ Player.prototype._hasCorrectLure = function(fish) {
     }
     for (var i=0; i<this._inventory.length; i++) {
         for (let lu of lures) {
-            console.debug("HCL ",i,lu);
             if (this._inventory[i].id() == lu.id && this._inventory[i].c() > 0) {
                 return true;
             }
@@ -338,7 +337,7 @@ Player.prototype._startEncounter = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
     if (fi !== false) {
         var f = Game.fish[fi];
-        console.debug("! "+f.s());
+        //console.debug("! "+f.s());
         if (this._hasCorrectLure(f)) {
             return this._encounterStepDex(f);
         } else {
@@ -350,18 +349,19 @@ Player.prototype._startEncounter = function() {
 }
 
 Player.prototype._encounterStepDex = function(enemy) {
-    this.newAction();
+    //this.newAction();
     this._activeAction.enemy = enemy;
 
     var doneFn = function() {
-        console.debug("!! post. success");
         if (this._activeAction.enemy._isPredator) {
             Game.toast = "You killed the fish!";
+            this.newAction();
         } else {
             Game.toast = "You caught the fish!";
             if (this._activeAction.enemy._isBoss) {
                 Game.engine._scheduler.remove(Game.boss);
             }
+            this.newAction();
         }
 
         this.newAction();
@@ -381,6 +381,7 @@ Player.prototype._encounterStepDex = function(enemy) {
     console.debug("!! "+this.s()+" vs "+this._activeAction.enemy.s());
 
     var dexDiff = this.getDex() - this._activeAction.enemy.getDex();
+    console.debug("!! dexDiff "+dexDiff,this._activeAction);
     var rv = false;
 
     if (this._activeAction.enemy._isPredator) {
@@ -393,7 +394,7 @@ Player.prototype._encounterStepDex = function(enemy) {
             rv = this._encounterStepStrPred(20);
         } else {
             console.debug("!! Fish too fast");
-            Game.toast = "The fish is too fast, you miss.";
+            Game.toast = "The fish is too fast.";
             return true;
         }
         if (rv && this._activeAction.finished) {
@@ -402,7 +403,9 @@ Player.prototype._encounterStepDex = function(enemy) {
 
     } else {
 
-        if (dexDiff >= 2 || this._activeAction.hooked) {
+        if (this._activeAction.hooked) {
+            rv = this._encounterStepStr(100);
+        } else if (dexDiff >= 2) {
             rv = this._encounterStepStr(90);
         } else if (dexDiff == 1 || dexDiff == 0) {
             rv = this._encounterStepStr(50);
@@ -426,9 +429,9 @@ Player.prototype._encounterStepStr = function(perc) {
     var hookedPerc = null;
     if (!this._activeAction.hooked) {
         hookedPerc = ROT.RNG.getPercentage();
-        console.debug("!! Hook% "+hookedPerc);
+        console.debug("!! Hook% "+hookedPerc+"/"+perc);
     }
-    if (hookedPerc <= perc || !this._activeAction.hooked) {
+    if (hookedPerc <= perc) {
         this._activeAction.hooked = true;
         var strDiff = this.getStr() - this._activeAction.enemy.getStr();
         console.debug("!! strDiff "+strDiff);
@@ -442,7 +445,8 @@ Player.prototype._encounterStepStr = function(perc) {
             console.debug("!! Weakened "+this._activeAction.enemy.s());
             Game.toast = "The fish is hooked but you could not reel it in.";
             return true;
-        } else if (strDiff <= -2) {
+        } else {
+            // strDiff <= -2
             var catchPerc = ROT.RNG.getPercentage();
             if (catchPerc <= 50) {
                 this._activeAction.hooked = true;
@@ -462,9 +466,6 @@ Player.prototype._encounterStepStr = function(perc) {
                 }
                 return true;
             }
-        } else {
-            console.debug("!! WTF");
-            return false;
         }
     } else {
         Game.toast = "The fish did not bite.";
@@ -473,43 +474,48 @@ Player.prototype._encounterStepStr = function(perc) {
 }
 
 Player.prototype._encounterStepStrPred = function(perc) {
-    var strDiff = this.getStr() - this._activeAction.enemy.getStr();
-    console.debug("!!p strDiff "+strDiff);
+    var hitPerc = ROT.RNG.getPercentage();
+    console.debug("!!p Hit% "+hitPerc+"/"+perc);
+    if (hitPerc <= perc) {
+        var strDiff = this.getStr() - this._activeAction.enemy.getStr();
+        console.debug("!!p strDiff "+strDiff);
 
-    var rv = false;
-    var damagePerc = ROT.RNG.getPercentage();
-    if (strDiff > 2) {
-        if (damagePerc <= 50) {
-            this._activeAction.enemy._hp -= 3;
+        var rv = false;
+        var damagePerc = ROT.RNG.getPercentage();
+        if (strDiff > 2) {
+            if (damagePerc <= 50) {
+                this._activeAction.enemy._hp -= 3;
+            } else {
+                this._activeAction.enemy._hp -= 4;
+            }
+            Game.toast = "The fish took a massive hit.";
+            rv = true;
+        } else if (strDiff == 2 && strDiff == 1) {
+            if (damagePerc <= 50) {
+                this._activeAction.enemy._hp -= 2;
+            } else {
+                this._activeAction.enemy._hp -= 3;
+            }
+            Game.toast = "The fish took a hit.";
+            rv = true;
         } else {
-            this._activeAction.enemy._hp -= 4;
+            // strDiff <= 0
+            if (damagePerc <= 50) {
+                this._activeAction.enemy._hp -= 1;
+            } else {
+                this._activeAction.enemy._hp -= 2;
+            }
+            Game.toast = "The fish took a weak hit.";
+            rv = true;
         }
-        Game.toast = "The fish took a massive hit.";
-        rv = true;
-    } else if (strDiff > 0 && strDiff <= 2) {
-        if (damagePerc <= 50) {
-            this._activeAction.enemy._hp -= 2;
-        } else {
-            this._activeAction.enemy._hp -= 3;
+        if (this._activeAction.enemy._hp <= 0) {
+            this._activeAction.finished = true;
         }
-        Game.toast = "The fish took a hit.";
-        rv = true;
-    } else if (strDiff <= 0) {
-        if (damagePerc <= 50) {
-            this._activeAction.enemy._hp -= 1;
-        } else {
-            this._activeAction.enemy._hp -= 2;
-        }
-        Game.toast = "The fish took a weak hit.";
-        rv = true;
+        return rv;
     } else {
-        console.debug("!!p WTF");
-        rv = false;
+        Game.toast = "You miss.";
+        return true;
     }
-    if (this._activeAction.enemy._hp <= 0) {
-        this._activeAction.finished = true;
-    }
-    return rv;
 }
 
 Player.prototype._fillEnergy = function() {
@@ -526,8 +532,7 @@ Player.prototype._inspect = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
     if (fi !== false) {
         var f = Game.fish[fi];
-        console.debug("__", f);
-        var str = "TODO fish "+f.getStr();
+        var str = "TODO fish D "+f.getDex()+" S "+f.getStr();
         Game.toast = str;
         return true;
     }

@@ -162,7 +162,7 @@ Player.prototype.handleEvent = function(ev) {
         return unlock(rv);
     }
     // space for fishing and boxes, keyCode 32
-    if (code == "Space") {
+    if (code == "Space" || code == "KeyF") {
         var rv = this._startEncounter();
         if (rv) {
             unlock(rv);

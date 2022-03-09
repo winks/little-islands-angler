@@ -1,6 +1,8 @@
 var Game = {
     display: null,
     engine: null,
+    gui: false,
+    tileSet: null,
     // key = "x,y"
     map: {},
     mapOff: {},
@@ -24,12 +26,14 @@ var Game = {
     currentLevel: 1,
 
     // general game params
-    width: 86,
-    height: 30,
+    width: 54,
+    height: 24,
     fontSize: 22,
-    statusLines: 6,
-    statusOffsetX: 3,
-    statusOffsetY: 1,
+    statusLines: 3,
+    statusOffsetX: 1,
+    statusOffsetY: 0,
+    tileWidth: 32,
+    tileHeight: 32,
 
     numFish: 10,
     numPredators: 5,
@@ -66,24 +70,89 @@ var Game = {
     predatorColor: "#ccc",
     portColor: "#f00",
     portBgColor: "#4d2600",
+    treeColor: "#452e0c",
     waterColor: "#06c",
 
+    resize: function() {
+        var elements = document.getElementsByTagName("canvas");
+        if (elements.length < 1) return;
+        var canvas = elements[0];
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        if (canvas.width < w) {
+            canvas.width = w;
+        }
+    },
+
     init: function() {
-        var displayOpt = {
-            width: this.width,
-            height: this.height+this.statusLines,
-            fontSize: this.fontSize,
-            bg: this.bgDefault
-        };
+        this.gui = true;
+        var displayOpt = {};
+        if (!this.gui) {
+            this.width = 80;
+            this.height = 30;
+            displayOpt = {
+                width: this.width,
+                height: this.height+this.statusLines,
+                fontSize: this.fontSize,
+                bg: this.bgDefault
+            };
+        } else {
+            this.tileSet = document.createElement("img");
+            this.tileSet.src = "assets/tiles32.png";
+            console.debug(this.tileSet);
+            var iw = this.tileWidth;
+            var ih = this.tileHeight;
+            displayOpt = {
+                layout: "tile",
+                bg: "transparent",
+                tileWidth: iw,
+                tileHeight: ih,
+                tileSet: this.tileSet,
+                tileMap: {
+                    " ": [0, 0],
+                    ".": [1*iw, 0],
+                    "$": [2*iw, 0],
+                    "#": [3*iw, 0],
+
+                    "%": [0, 1*ih],
+                    "!": [1*iw, 1*ih],
+                    "*": [2*iw, 1*ih],
+                    "@": [3*iw, 1*ih]
+                    //,"^": [103, 103]
+                },
+                width: this.width,
+                height: this.height+this.statusLines
+            }
+        }
+        
         this.display = new ROT.Display(displayOpt);
         document.body.appendChild(this.display.getContainer());
         
+        if (this.gui) {
+            //this.resize();
+        }
+
         this.nextLevel();
         this._generatePlayer(this.waterCells);
         this.startLevel();
-        this.update();
 
-        this.player._showIntro();
+        this.update();
+        //this.display.draw(0, 0, "@");
+        //this.display.draw(1, 0, "%");
+        //this.display.draw(2, 0, "!");
+        //this.display.draw(3, 0, "*");
+        //this.display.draw(4, 0, " ");
+        //this.display.draw(5, 0, ".");
+        //this.display.draw(6, 0, "$");
+        //this.display.draw(7, 0, "#");
+
+        this.display.draw(1, this.height+0, "@");
+        this.display.draw(1, this.height+1, "@");
+        this.display.draw(1, this.height+2, "@");
+        if (!this.gui) {
+            this.player._showIntro();
+        }
+        //this.display.drawText(20, 5, "This line of text is very long.", 16);
     },
 
     checkGameState: function() {
@@ -271,7 +340,7 @@ var Game = {
 
         map.create(digCallback.bind(this));
         console.debug("map", map);
-        map.connect();
+        map.connect(digCallback.bind(this));
 
         this._generateBoxes(this.landCells, this.waterCells);
         this._generatePorts(this.landCells, this.waterCells);
@@ -447,7 +516,7 @@ var Game = {
             var x = parseInt(parts[0]);
             var y = parseInt(parts[1]);
             var sigil = this.mapOff[key];
-            this.draw(x, y, sigil, this.waterColor, this.bgDefault);
+            this.draw(x, y, sigil, this.treeColor, this.bgDefault);
         }
         for (var key in this.map) {
             var parts = key.split(",");
@@ -481,11 +550,16 @@ var Game = {
     },
 
     _drawStatus: function() {
+        if (this.gui) {
+            // @FIXME
+            return;
+        }
         for(var x=0;x<this.width;x++) {
             for(var y=this.height;y<this.height+this.statusLines;y++) {
                 this.draw(x, y, " ", this.fgText, this.bgText);
             }
         }
+
         this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
                 this.playerColor, this.bgText);
 
@@ -525,7 +599,7 @@ var Game = {
         // status messages
         if (this.toast.length > 0) {
             var s2 = "%b{black}%c{white}"+this.toast+"%c{}%b{}";
-            this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+3, s2);
+            this.display.drawText(this.statusOffsetX, this.height+this.statusOffsetY+2, s2);
             this.toast = "";
         }
     },
@@ -555,7 +629,11 @@ var Game = {
             fgc = this.doorColor;
             bgc = this.doorBgColor;
         }
-        this.display.draw(x, y, sigil, fgc, bgc);
+        if (this.gui) {
+            this.display.draw(x, y, sigil);
+        } else {
+            this.display.draw(x, y, sigil, fgc, bgc);
+        }
     }
 };
 Game.ITEM = {};

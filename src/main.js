@@ -10,6 +10,8 @@ var Game = {
     fish: {},
     ent: {},
     shopOpen: false,
+    helpOpen: false,
+    introOpen: false,
     // just map keys
     landCells: [],
     waterCells: [],
@@ -176,8 +178,9 @@ var Game = {
     },
 
     openShop: function() {
-        this._drawPanel();
+        this.engine.lock();
         this.shopOpen = true;
+        this._drawPanel();
 
         var offx = 4;
         var offy = 4;
@@ -196,8 +199,9 @@ var Game = {
     },
 
     openHelp: function() {
-        this._drawPanel();
+        this.engine.lock();
         this.helpOpen = true;
+        this._drawPanel();
 
         var offx = 4;
         var offy = 4;
@@ -219,8 +223,9 @@ var Game = {
     },
 
     openIntro: function() {
+        this.engine.lock();
         this._drawPanel();
-        this.helpOpen = true;
+        this.introOpen = true;
 
         var offx = 4;
         var offy = 4;

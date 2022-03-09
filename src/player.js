@@ -104,6 +104,7 @@ Player.prototype.handleEvent = function(ev) {
     // a modal dialog for a shop
     if (Game.shopOpen) {
         if (code == "Escape" || code == "KeyB") {
+            Game.shopOpen = false;
             Game.closePanel();
             return unlock(true);
         }
@@ -128,17 +129,21 @@ Player.prototype.handleEvent = function(ev) {
                 Game.updS();
             }
         }
-        return unlock(true);
+        return;
     } else if (Game.helpOpen) {
         if (code == "Escape" || code == "KeyH") {
             Game.closePanel();
+            Game.helpOpen = false;
+            return unlock(true);
         }
-        return unlock(true);
+        return;
     } else if (Game.introOpen) {
         if (code == "Escape" || code == "Space" || code == "Enter") {
             Game.closePanel();
+            Game.introOpen = false;
+            return unlock(true);
         }
-        return unlock(true);
+        return;
     }
 
     // enter to finish level, keyCode 13

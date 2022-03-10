@@ -595,7 +595,40 @@ Player.prototype._inspect = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
     if (fi !== false) {
         var f = Game.fish[fi];
-        var str = "TODO fish D "+f.getDex()+" S "+f.getStr();
+        //var str = "This fish D "+f.getDex()+" S "+f.getStr();
+
+        var dexDiff = this.getDex() - f.getDex();
+        var strDiff = this.getStr() - f.getStr();
+        var str = "";
+        if (dexDiff < -2) {
+            str = "This one will not bite.";
+        } else if (strDiff < -3) {
+            str = "This fish seems very strong.";
+        } else if (dexDiff == -2 || dexDiff == -1) {
+            if (strDiff > 1) {
+                str = "This fish seems agile and weak.";
+            } else if (strDiff == 1 || strDiff == 0 || strDiff == -1) {
+                str = "This fish seems agile.";
+            } else if (strDiff == -2 || strDiff == -3) {
+                str = "This fish seems agile and strong.";
+            }
+        } else if (dexDiff == 0 || dexDiff == 1) {
+            if (strDiff > 1) {
+                str = "This fish seems weak.";
+            } else if (strDiff == 1 || strDiff == 0 || strDiff == -1) {
+                str = "This fish seems compareable.";
+            } else if (strDiff == -2 || strDiff == -3) {
+                str = "This fish seems strong.";
+            }
+        } else if (dexDiff > 1) {
+            if (strDiff > 1) {
+                str = "This fish seems tractable and weak.";
+            } else if (strDiff == 1 || strDiff == 0 || strDiff == -1) {
+                str = "This fish seems tractable.";
+            } else if (strDiff == -2 || strDiff == -3) {
+                str = "This fish seems tractable and strong.";
+            }
+        }
         Game.toast = str;
         return true;
     }

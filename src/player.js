@@ -173,16 +173,34 @@ Player.prototype.handleEvent = function(ev) {
     }
     if (lookupDigit[code]) {
         var idx = lookupDigit[code];
+        if (code == "Digit0") idx = 10;
         console.debug("USE ",idx);
         if (this._inventory.length < idx) {
             console.debug("USE too short");
             return unlock(false);
         }
-        if (this._inventory[idx-1]._active) {
+        var item = this._inventory[idx-1];
+        if (item._active || item._id == 13) {
             console.debug("USE already active");
             return unlock(false);
         }
-        this._inventory[idx-1].activate();
+        console.debug("USEx",item);
+        if (Game.ITEM[item._id].group > 0) {
+            for (var i=0; i<this._inventory.length; i++) {
+                console.debug("USE group",item.group,"idx",i)
+                if (i == idx-1) continue;
+                var oId = this._inventory[i]._id;
+                if (Game.ITEM[oId].group == Game.ITEM[item._id].group && this._inventory[i]._active) {
+                    console.debug("USE group A");
+                    this._inventory[i].deactivate();
+                    item.activate();
+                    return unlock(true);
+                }
+            }
+            item.activate();
+        } else {
+            item.activate();
+        }
         return unlock(true);
     }
 

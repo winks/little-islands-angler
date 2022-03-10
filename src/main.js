@@ -698,22 +698,22 @@ var Game = {
             var str = "<span>";
             str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-energy' />";
-            str += " <span class='t-green'>"+energy+"/"+this.player.getEnergyMax()+"</span> ";
+            str += "<span class='t-green'>"+energy+"/"+this.player.getEnergyMax()+"</span> ";
             str += "<span class='tooltiptext'>"+this.tt["ene"]+"</span></span>";
 
             str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-dex' />";
-            str += " <span class='t-brown'>"+this.player.getDex()+"</span> ";
+            str += "<span class='t-brown'>"+this.player.getDex()+"</span> ";
             str += "<span class='tooltiptext'>"+this.tt["dex"]+"</span></span>";
 
             str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-str' />";
-            str += " <span class='t-red'>"+this.player.getStr()+"</span> ";
+            str += "<span class='t-red'>"+this.player.getStr()+"</span> ";
             str += "<span class='tooltiptext'>"+this.tt["str"]+"</span></span>";
 
             str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
-            str += " <span class='t-yellow'>"+this.player.getCurrency()+"</span> ";
+            str += "<span class='t-yellow'>"+this.player.getCurrency()+"</span> ";
             str += "<span class='tooltiptext'>"+this.tt["cur"]+"</span></span>";
 
             str += "<img src='assets/t.gif' width='100' height='32' />";
@@ -957,7 +957,7 @@ Game.ITEM[2] =  {id:2,  group:0, name: "Tome of Dexterity",long: "Tome of Dexter
 Game.ITEM[3] =  {id:3,  group:0, name: "Tome of Energy",   long: "Tome of Energy",       resolve: function(x) { if (!x) x = 2; Game.player.addEnergyMax(x); } };
 Game.ITEM[11] = {id:11, group:1, name: "Lure",            long: "Standard Fishing Lure", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_STD, x); } };
 Game.ITEM[12] = {id:12, group:1, name: "Better Lure",     long: "Better Fishing Lure",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
-Game.ITEM[13] = {id:13, group:1, name: "Rainbow Fly",     long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
+Game.ITEM[13] = {id:13, group:0, name: "Rainbow Fly",     long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
 Game.ITEM[18] = {id:18, group:0, name: "Harpoon Upgrade", long: "Harpoon Upgrade",       resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
 Game.ITEM[19] = {id:19, group:0, name: "Better Line",     long: "Stronger Fishing Line", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
 Game.ITEM[30] = {id:30, group:0, name: "Superberry",      long: "Superberry",            resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };

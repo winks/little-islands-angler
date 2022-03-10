@@ -264,7 +264,20 @@ var Game = {
         this._drawPanel();
 
         if (this.gui) {
-            var str = "shop";
+            var str = "<span>Shop <br><br>";
+            for (let k of Object.keys(Game.SHOP)) {
+                var inv = Game.SHOP[k];
+                var name = inv.item.name;
+                if (inv.item.long) name = inv.item.long;
+                var plural = "s";
+                if (inv.price == 1) plural = "";
+                str += k+") ";
+                str += " Buy "+inv.units;
+                str += " <span class='t-white'>"+name+"</span>";
+                str += " for <span class='t-white'>"+inv.price+"</span>";
+                str += " ration"+plural+" of fish.<br><br>";
+            }
+            str += "</span>"
             this._createHtmlPanel("shop-panel", str)
         } else {
             var offx = 4;
@@ -333,7 +346,14 @@ var Game = {
         this.introOpen = true;
 
         if (this.gui) {
-            var str = "intro";
+            var str = "<span>Welcome to tbf<br><br>";
+            str += "catch and kill fish, pay "+Game.volCurrencyToExit+" rations of fish at the port to progress";
+            str += "<br><br>";
+            str += "press h for help";
+            str += "<br><br>";
+            str += "ESC or SPACE to begin";
+            str += "<br>";
+            str += "</span>";
             this._createHtmlPanel("intro-panel", str);
         } else {
             var offx = 4;
@@ -341,9 +361,11 @@ var Game = {
             var help = [
                 "Welcome to tbf",
                 "",
-                "catch and kill fish, pay 10 rations of fish at the port to progress",
+                "catch and kill fish, pay "+Game.volCurrencyToExit+" rations of fish at the port to progress",
                 "",
                 "press h for help",
+                "",
+                "ESC or SPACE to begin"
             ];
             for (let k of help) {
                 var str = "%b{black}%c{grey}"+k;

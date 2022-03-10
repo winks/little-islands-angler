@@ -173,6 +173,7 @@ var Game = {
             console.debug("Level finished");
             this.nextLevel();
             this.currentLevel++;
+            this.volCurrencyToExit = 8 + (this.currentLevel*2);
             this.player.levelUp();
             this.update();
         }
@@ -478,17 +479,17 @@ var Game = {
     _generateBoxLoot: function() {
         var boxPerc = ROT.RNG.getPercentage();
         var treasure = null;
-        if (boxPerc <= 10) {
+        if (boxPerc <= 25) {
             treasure = Game.ITEM.LURE_STD;
-        } else if (boxPerc <= 20) {
+        } else if (boxPerc <= 37) {
             treasure = Game.ITEM.LURE_ENH;
-        } else if (boxPerc <= 30) {
+        } else if (boxPerc <= 45) {
             treasure = Game.ITEM.HARPOON_PLUS;
-        } else if (boxPerc <= 40) {
+        } else if (boxPerc <= 53) {
             treasure = Game.ITEM.LINE_STRONG;
-        } else if (boxPerc <= 50) {
-            treasure = Game.ITEM.SUPERBERRY;
-        } else if (boxPerc <= 60) {
+        //} else if (boxPerc <= 50) {
+        //    treasure = Game.ITEM.SUPERBERRY;
+        } else if (boxPerc <= 78) {
             treasure = Game.ITEM.INSTA_ENE;
         } else {
             treasure = Game.ITEM.NOTHING;

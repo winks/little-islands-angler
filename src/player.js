@@ -22,6 +22,13 @@ Player.prototype.getCurrency = function() { return this._currency; }
 Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
 Player.prototype.getInv = function() { return this._inventory; }
+Player.prototype.randomMove = function() {
+    var xyk = Game._getRandPos(Game.waterCells);
+    this._x = xyk[0];
+    this._y = xyk[1];
+    this._draw();
+    console.debug("LUP move player to",xyk);
+}
 Player.prototype.levelUp = function(e) {
     var perc = ROT.RNG.getPercentage();
     var str = "Level Up! ";

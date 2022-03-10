@@ -222,16 +222,25 @@ var Game = {
     },
 
     nextLevel: function() {
+        console.debug("preparing new level");
         this.map = {};
         this.landCells = [];
         this.waterCells = [];
-        this.boss = null;
+        for (let fi of Object.keys(this.fish)) {
+            var fish = this.fish[fi];
+            this.engine._scheduler.remove(fish);
+        }
         this.fish = {};
+        if (this.boss) this.engine._scheduler.remove(this.boss);
+        this.boss = null;
+
         this.ent = {};
         this.toast = "";
         this.levelFinished = false;
 
         this._generateMap();
+        if (this.player) this.player.randomMove();
+        this.startLevel();
     },
 
     startLevel: function() {
@@ -245,7 +254,7 @@ var Game = {
         this.engine = new ROT.Engine(scheduler);
         this.engine.start();
 
-        console.debug("game", this);
+        console.debug("new level", this);
     },
 
     closePanel: function() {
@@ -813,7 +822,7 @@ Game.SHOP[4] = {item: Game.ITEM.LURE_STD, price: 1,  units: 3};
 Game.SHOP[5] = {item: Game.ITEM.LURE_BOSS, price: 3, units: 1};
 
 
-var Fish = function(x, y, id, type, isBoss, isPredator) {
+var Fish = function(x, y, id, type, isBoss, isPredator, dex, str) {
     this._x = x;
     this._y = y;
     this._id = id;
@@ -827,8 +836,10 @@ var Fish = function(x, y, id, type, isBoss, isPredator) {
     if (isPredator === true) {
         this._isPredator = true;
     }
-    this._strength =  5 + 1 + Math.floor(ROT.RNG.getUniform() * 8);
     this._dexterity = 6 + 1 + Math.floor(ROT.RNG.getUniform() * 5);
+    this._strength =  5 + 1 + Math.floor(ROT.RNG.getUniform() * 8);
+    if (dex) this._dexterity = dex;
+    if (str) this._strength = dex;
     if (this._isBoss) {
         this._strength += 2;
         this._dexterity += 2;
@@ -839,7 +850,7 @@ var Fish = function(x, y, id, type, isBoss, isPredator) {
     this._draw();
 }
 Fish.prototype.act = function() {
-    if (this._x == Game.player.getX() && this._y == Game.player.getY()) {
+    if (!Game.player || this._x == Game.player.getX() && this._y == Game.player.getY()) {
         console.debug("nope");
         return;
     }

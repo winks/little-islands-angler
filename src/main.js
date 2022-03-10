@@ -785,6 +785,75 @@ var Game = {
         } else {
             this.display.draw(x, y, sigil, fgc, bgc);
         }
+    },
+
+    rollFishStats: function(level) {
+        if (!level) level  = 1;
+        var factor = 0;
+        if (level > 6) factor = Math.floor(level / 6);
+        console.debug("rfs ",level, factor);
+        var baseDexLow     = 6;
+        var maxRollDexLow  = 6;
+        var baseStrLow     = 5;
+        var maxRollStrLow  = 9;
+        var numLow         = 10;
+        var numHigh        = 0;
+
+        if (factor > 0) {
+            baseDexLow += 2*factor;
+            baseStrLow += 2*factor;
+            maxRollStrLow += 1*factor;
+        }
+        var baseDexHigh    = baseDexLow+2;
+        var maxRollDexHigh = maxRollDexLow;
+        var baseStrHigh    = baseStrLow+2;
+        var maxRollStrHigh = maxRollStrLow+1;
+
+        if (level % 6 == 0) {
+            baseDexLow     += 1;
+            maxRollStrHigh += 1;
+            numLow     = 3;
+            numHigh    = 7;
+            baseDexHigh = baseDexLow + 2;
+            baseStrHigh = baseStrLow + 2;
+            maxRollStrHigh = maxRollStrLow + 1;
+        } else if(level % 6 == 5) {
+            baseDexLow    += 1;
+            maxRollStrLow += 1;
+            numLow     = 5;
+            numHigh    = 5;
+            baseDexHigh = baseDexLow + 2;
+            baseStrHigh = baseStrLow + 2;
+        } else if(level % 6 == 4) {
+            baseDexLow    += 1;
+            maxRollStrLow += 1;
+            numLow     = 8;
+            numHigh    = 2;
+            baseDexHigh = baseDexLow + 2;
+            baseStrHigh = baseStrLow + 2;
+        } else if(level % 6 == 3) {
+            baseDexLow    += 1;
+        } else if(level % 6 == 2) {
+            baseDexLow    += 1;
+            maxRollDexLow -= 1;
+        } else if(level % 6 == 1) {
+
+        }
+
+        var rv = [];
+        for (var i=0; i<numLow; i++) {
+            var dex = baseDexLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexLow-1));
+            var str = baseStrLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrLow-1));
+            var stats = [dex, str, 'low'];
+            rv.push(stats);
+        }
+        for (var i=0; i<numHigh; i++) {
+            var dex = baseDexHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexHigh-1));
+            var str = baseStrHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrHigh-1));
+            var stats = [dex, str, 'high'];
+            rv.push(stats);
+        }
+        return rv;
     }
 };
 Game.ITEM = {};

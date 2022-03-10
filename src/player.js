@@ -97,6 +97,7 @@ Player.prototype.addItem = function(item, count) {
     console.debug("II you gain "+count+" of "+it.s());
 }
 Player.prototype.removeItem = function(item, count) {
+    if (!count || count < 1) count = 1;
     for (var i=0; i<this._inventory.length; i++) {
         if (this._inventory[i].id() == item.id) {
             this._inventory[i]._count -= count;
@@ -180,8 +181,12 @@ Player.prototype.handleEvent = function(ev) {
             return unlock(false);
         }
         var item = this._inventory[idx-1];
-        if (item._active || item._id == 13) {
+        if (item._active) {
             console.debug("USE already active");
+            return unlock(false);
+        }
+        if (Game.ITEM[item._id].group == 0) {
+            console.debug("USE passive item");
             return unlock(false);
         }
         console.debug("USEx",item);
@@ -432,7 +437,8 @@ Player.prototype._encounterStepDex = function(enemy) {
                 drop.resolve();
                 str2 += " You find a "+drop.long+".";
             }
-            Game.removeEnemy(Game.boss);
+            this.removeItem(Game.ITEM.LURE_BOSS, 1);
+            Game.removeEnemy(this._activeAction.enemy);
             Game.boss = null;
         } else {
             Game.removeEnemy(this._activeAction.enemy);

@@ -729,7 +729,11 @@ var Game = {
                     str += "<span class='t-nums'>|</span> ";
                 }
                 str += "<span class='tooltip'>";
-                str += "<span class='t-num'>["+(i+1)+"]</span> ";
+                var isa = "";
+                if (inv[i]._active) {
+                    isa = "-active"
+                }
+                str += "<span class='t-num"+isa+"'>["+(i+1)+"]</span> ";
                 str += "<span class='t-vol'>"+c+"x</span>";
                 var nx = inv[i].slug();
                 str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-"+nx+"' />";

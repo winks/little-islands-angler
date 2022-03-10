@@ -8,6 +8,7 @@ var Player = function(x, y) {
     this._currency = 20;
     this._inventory = [];
     this._activeAction = {};
+    this._tempActiveItems = [];
 
     this.addItem(Game.ITEM.LURE_STD, 5);
     this.newAction();
@@ -47,6 +48,16 @@ Player.prototype.levelUp = function(e) {
     this.addItem(Game.ITEM.LURE_STD, num);
     str += " and "+num+" "+Game.ITEM.LURE_STD.long+"s.";
     Game.toast = str;
+
+    // remove items that are active for one level
+    console.debug("item cleanup start:",this._tempActiveItems, this._inventory);
+    for (var i=0; i<this._tempActiveItems.length; i++) {
+        var curIdx = this._activeItems[i];
+        this.removeItem(curIdx);
+        console.debug("post",this._inventory);
+    }
+    this._tempActiveItems = [];
+    console.debug("item cleanup end:",this._tempActiveItems, this._inventory);
 }
 Player.prototype.newAction = function(e) {
     this._activeAction = {
@@ -78,7 +89,7 @@ Player.prototype.addItem = function(item, count) {
             return;
         }
     }
-    var it = new InventoryItem(item.id, count);
+    var it = new InventoryItem(item.id, count, false);
     this._inventory.push(it);
     console.debug("II you gain "+count+" of "+it.s());
 }
@@ -151,6 +162,25 @@ Player.prototype.handleEvent = function(ev) {
             return unlock(true);
         }
         return;
+    }
+
+    var lookupDigit = {};
+    for (var i=0; i<=9; i++) {
+        lookupDigit["Digit"+i] = i;
+    }
+    if (lookupDigit[code]) {
+        var idx = lookupDigit[code];
+        console.debug("USE ",idx);
+        if (this._inventory.length < idx) {
+            console.debug("USE too short");
+            return unlock(false);
+        }
+        if (this._inventory[idx-1]._active) {
+            console.debug("USE already active");
+            return unlock(false);
+        }
+        this._inventory[idx-1].activate();
+        return unlock(true);
     }
 
     // enter to finish level, keyCode 13
@@ -583,9 +613,11 @@ Player.prototype.k = function() {
     return this._x+","+this._y;
 }
 
-var InventoryItem = function(id, count) {
+var InventoryItem = function(id, count, active) {
     this._id = id;
     this._count = count;
+    this._active = false;
+    if (active) this._active = true;
 }
 InventoryItem.prototype.id = function() { return this._id; }
 InventoryItem.prototype.c = function() { return this._count; }
@@ -598,3 +630,5 @@ InventoryItem.prototype.pretty = function() {
 InventoryItem.prototype.slug = function() {
     return Game.ITEM[this._id].name.toLowerCase().replace(" ", "-");
 }
+InventoryItem.prototype.activate = function() { this._active = true; }
+InventoryItem.prototype.deactivate = function() { this._active = false; }

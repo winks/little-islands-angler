@@ -66,6 +66,9 @@ Player.prototype.newAction = function(e) {
         finished: false
     };
 }
+Player.prototype.addEnergyMax = function(e) {
+    this._energyMax += e;
+}
 Player.prototype.addEnergy = function(e) {
     this._energy += e;
     if (this._energy > this._energyMax) {
@@ -636,7 +639,7 @@ Player.prototype._inspect = function() {
 }
 
 Player.prototype.s = function(prefix, suffix) {
-    var msg = "[Player: DEX: "+this._dexterity+" STR: "+this._strength+"  @ ("+this.k()+")]";
+    var msg = "[Player: DEX: "+this.getDex()+" STR: "+this.getStr()+"  @ ("+this.k()+")]";
     if (prefix) msg = prefix + msg;
     if (suffix) msg = msg + suffix;
     return msg;

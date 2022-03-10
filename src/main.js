@@ -951,18 +951,18 @@ var Game = {
     }
 };
 Game.ITEM = {};
-Game.ITEM[0] =  {id:0,  name: "nothing", long: "nothing",                    resolve: function()  {} };
-Game.ITEM[1] =  {id:1,  name: "Tome of Strength", long: "Tome of Strength",  resolve: function()  { Game.player._strength += 1; } };
-Game.ITEM[2] =  {id:2,  name: "Tome of Dexterity", long: "Tome of Dexterity",resolve: function()  { Game.player._dexterity += 1; } };
-Game.ITEM[3] =  {id:3,  name: "Tome of Energy", long: "Tome of Energy",      resolve: function(x) { if (!x) x = 2; Game.player._energyMax += x; } };
-Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_STD, x); } };
-Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
-Game.ITEM[13] = {id:13, name: "Rainbow Fly", long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
-Game.ITEM[18] = {id:18, name: "Harpoon Upgrade", long: "Harpoon Upgrade",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
-Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
-Game.ITEM[30] = {id:30, name: "Superberry",  long: "Superberry",            resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
-Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { if (!x) x = 5; Game.player.addEnergy(x); } };
-Game.ITEM[40] = {id:40, name: "Ration of Fish", long: "Ration of Fish",     resolve: function()  { Game.player.addCurrency(1); } };
+Game.ITEM[0] =  {id:0,  group:0, name: "nothing",          long: "nothing",              resolve: function()  {} };
+Game.ITEM[1] =  {id:1,  group:0, name: "Tome of Strength", long: "Tome of Strength",     resolve: function()  { Game.player._strength += 1; } };
+Game.ITEM[2] =  {id:2,  group:0, name: "Tome of Dexterity",long: "Tome of Dexterity",    resolve: function()  { Game.player._dexterity += 1; } };
+Game.ITEM[3] =  {id:3,  group:0, name: "Tome of Energy",   long: "Tome of Energy",       resolve: function(x) { if (!x) x = 2; Game.player.addEnergyMax(x); } };
+Game.ITEM[11] = {id:11, group:1, name: "Lure",            long: "Standard Fishing Lure", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_STD, x); } };
+Game.ITEM[12] = {id:12, group:1, name: "Better Lure",     long: "Better Fishing Lure",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
+Game.ITEM[13] = {id:13, group:1, name: "Rainbow Fly",     long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
+Game.ITEM[18] = {id:18, group:0, name: "Harpoon Upgrade", long: "Harpoon Upgrade",       resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
+Game.ITEM[19] = {id:19, group:0, name: "Better Line",     long: "Stronger Fishing Line", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
+Game.ITEM[30] = {id:30, group:0, name: "Superberry",      long: "Superberry",            resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
+Game.ITEM[31] = {id:30, group:0, name: "InstaEnergy",     long: "a handful of eggs",     resolve: function(x) { if (!x) x = 5; Game.player.addEnergy(x); } };
+Game.ITEM[40] = {id:40, group:0, name: "Ration of Fish",  long: "Ration of Fish",        resolve: function(x) { if (!x) x = 1; Game.player.addCurrency(x); } };
 
 Game.ITEM.NOTHING      = Game.ITEM[0];
 Game.ITEM.TOME_STR     = Game.ITEM[1];
@@ -1136,7 +1136,7 @@ Fish.prototype.k = function() {
     return this._x+","+this._y;
 }
 Fish.prototype.s = function(prefix, suffix) {
-    var msg = "[Fish "+this._id+": DEX: "+this._dexterity+" STR: "+this._strength+" @ ("+this.k()+")";
+    var msg = "[Fish "+this.id()+": DEX: "+this.getDex()+" STR: "+this.getStr()+" @ ("+this.k()+")";
     if (this._isPredator) msg += " HP:"+this._hp+"";
     if (this._isBoss) msg += " BOSS";
     msg += "]";

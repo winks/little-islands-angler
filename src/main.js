@@ -36,7 +36,7 @@ var Game = {
     tileHeight: 32,
 
     numFish: 10,
-    numPredators: 5,
+    numPredators: 3,
     numBoxes: 3,
     numPorts: 1,
     numDoors: 0,
@@ -438,9 +438,6 @@ var Game = {
     },
 
     _generateEntities: function(waterCells, landCells) {
-        var bossId = "boss";
-        this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true]);
-        this.fish[bossId] = this.boss;
         this._generateFish(waterCells);
     },
 
@@ -454,16 +451,25 @@ var Game = {
     },
 
     _generateFish: function(waterCells) {
+        var ffs = this.rollFishStats(this.currentLevel, this.numFish, false);
+        var fps = this.rollFishStats(this.currentLevel, this.numPredators, true);
+        var bossStats = ffs.pop();
+
+        var bossId = "boss";
+        this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+        this.fish[bossId] = this.boss;
+
         for (var i=0;i<this.numFish;i++) {
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
             var id = "fi"+i;
-            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, false]);
+            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, false, ffs[i][0], ffs[i][1]]);
             this.fish[id] = f;
         }
+
         for (var i=0;i<this.numPredators;i++) {
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.predTypes.length);
             var id = "pr"+i;
-            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, true]);
+            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, true, fps[i][0], fps[i][1]]);
             this.fish[id] = f;
         }
     },
@@ -803,7 +809,7 @@ var Game = {
         }
     },
 
-    rollFishStats: function(level) {
+    rollFishStats: function(level, numTotal, isPredator) {
         if (!level) level  = 1;
         var factor = 0;
         if (level > 6) factor = Math.floor(level / 6);
@@ -812,7 +818,7 @@ var Game = {
         var maxRollDexLow  = 6;
         var baseStrLow     = 5;
         var maxRollStrLow  = 9;
-        var numLow         = 10;
+        var numLow         = numTotal;
         var numHigh        = 0;
 
         if (factor > 0) {
@@ -828,23 +834,38 @@ var Game = {
         if (level % 6 == 0) {
             baseDexLow     += 1;
             maxRollStrHigh += 1;
-            numLow     = 3;
-            numHigh    = 7;
+            if (isPredator) {
+                numLow     -= 2;
+                numHigh    += 2;
+            } else {
+                numLow     -= 7;
+                numHigh    += 7;
+            }
             baseDexHigh = baseDexLow + 2;
             baseStrHigh = baseStrLow + 2;
             maxRollStrHigh = maxRollStrLow + 1;
         } else if(level % 6 == 5) {
             baseDexLow    += 1;
             maxRollStrLow += 1;
-            numLow     = 5;
-            numHigh    = 5;
+            if (isPredator) {
+                numLow     -= 2;
+                numHigh    += 2;
+            } else {
+                numLow     -= 5;
+                numHigh    += 5;
+            }
             baseDexHigh = baseDexLow + 2;
             baseStrHigh = baseStrLow + 2;
         } else if(level % 6 == 4) {
             baseDexLow    += 1;
             maxRollStrLow += 1;
-            numLow     = 8;
-            numHigh    = 2;
+            if (isPredator) {
+                numLow     -= 1;
+                numHigh    += 1;
+            } else {
+                numLow     -= 2;
+                numHigh    += 2;
+            }
             baseDexHigh = baseDexLow + 2;
             baseStrHigh = baseStrLow + 2;
         } else if(level % 6 == 3) {
@@ -868,6 +889,22 @@ var Game = {
             var str = baseStrHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrHigh-1));
             var stats = [dex, str, 'high'];
             rv.push(stats);
+        }
+        if (!isPredator) {
+            // boss
+            if (numHigh > 0) {
+                maxRollStrHigh -= 3;
+                var dex = baseDexHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexHigh-1));
+                var str = baseStrHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrHigh-1));
+                var stats = [dex, str+2, 'high'];
+                rv.push(stats);
+            } else {
+                maxRollStrLow -= 3;
+                var dex = baseDexLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexLow-1));
+                var str = baseStrLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrLow-1));
+                var stats = [dex, str+2, 'low'];
+                rv.push(stats);
+            }
         }
         return rv;
     }
@@ -924,11 +961,8 @@ var Fish = function(x, y, id, type, isBoss, isPredator, dex, str) {
     this._dexterity = 6 + 1 + Math.floor(ROT.RNG.getUniform() * 5);
     this._strength =  5 + 1 + Math.floor(ROT.RNG.getUniform() * 8);
     if (dex) this._dexterity = dex;
-    if (str) this._strength = dex;
-    if (this._isBoss) {
-        this._strength += 2;
-        this._dexterity += 2;
-    }
+    if (str) this._strength = str;
+
     if (isPredator) {
         this._hp = Math.floor((this._strength + this._dexterity)/2) - 3;
     }

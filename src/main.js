@@ -47,17 +47,20 @@ var Game = {
     // sigils
     defaultSigil: " ",
     bossSigil: "*",
+    bossSigil2: "~",
     boxSigil: "$",
     doorSigil: "^",
     fishSigil: "%",
+    fishSigil2: "=",
     landSigil1: ".",
     landSigil2: ",",
     landSigil3: "-",
     landSigil4: "_",
     playerSigil: "@",
     predatorSigil: "!",
+    predatorSigil2: "?",
     portSigil: "#",
-    voidSigil: ")",
+    voidSigil: "/",
 
     fishTypes: ["salmon", "tuna", "trout"],
     predTypes: ["pred1", "pred2"],
@@ -112,7 +115,7 @@ var Game = {
                 tileHeight: ih,
                 tileSet: this.tileSet,
                 tileMap: {
-                    "_": [0, 0],
+                    ")": [0, 0],
                     "\"": [1*iw, 0],
                     "^": [2*iw, 0],
                     "/": [3*iw, 0],
@@ -123,21 +126,27 @@ var Game = {
                     "}": [7*iw, 0],
 
                     "(": [8*iw, 0],
-                    ")": [9*iw, 0],
+                    "/": [9*iw, 0],
+                    " ": [10*iw, 0],
+                    "@": [11*iw, 0],
 
-                    " ": [0, 1*ih],
-                    ".": [1*iw, 1*ih],
-                    "$": [2*iw, 1*ih],
-                    "#": [3*iw, 1*ih],
+                    ".": [0, 1*ih],
+                    ",": [1*iw, 1*ih],
+                    "-": [2*iw, 1*ih],
+                    "_": [3*iw, 1*ih],
 
-                    "%": [4*iw, 1*ih],
-                    "!": [5*iw, 1*ih],
-                    "*": [6*iw, 1*ih],
-                    "@": [7*iw, 1*ih],
+                    "$": [4*iw, 1*ih],
+                    "#": [5*iw, 1*ih],
 
-                    "A": [8*iw, 1*ih],
-                    "B": [9*iw, 1*ih],
-                    "C": [10*iw, 1*ih],
+                    "%": [6*iw, 1*ih],
+                    "!": [7*iw, 1*ih],
+                    "*": [8*iw, 1*ih],
+                    "=": [9*iw, 1*ih],
+
+                    "?": [10*iw, 1*ih],
+                    "~": [11*iw, 1*ih],
+
+                    "C": [12*iw, 1*ih],
 
                     //,"^": [103, 103]
                 },

@@ -50,7 +50,10 @@ var Game = {
     boxSigil: "$",
     doorSigil: "^",
     fishSigil: "%",
-    landSigil: ".",
+    landSigil1: ".",
+    landSigil2: ",",
+    landSigil3: "-",
+    landSigil4: "_",
     playerSigil: "@",
     predatorSigil: "!",
     portSigil: "#",
@@ -155,7 +158,7 @@ var Game = {
         this.startLevel();
 
         this.update();
-        this.player._showIntro();
+        this.player._showIntro(1);
     },
 
     checkGameState: function() {
@@ -176,6 +179,9 @@ var Game = {
             this.volCurrencyToExit = 8 + (this.currentLevel*2);
             this.player.levelUp();
             this.update();
+            this.startLevel();
+            this.update();
+            this.player._showIntro(this.currentLevel);
         }
     },
 
@@ -240,7 +246,6 @@ var Game = {
 
         this._generateMap();
         if (this.player) this.player.randomMove();
-        this.startLevel();
     },
 
     startLevel: function() {
@@ -350,7 +355,7 @@ var Game = {
         }
     },
 
-    openIntro: function() {
+    openIntro: function(level) {
         this.engine.lock();
         this._drawPanel();
         this.introOpen = true;
@@ -364,6 +369,9 @@ var Game = {
             str += "ESC or SPACE to begin";
             str += "<br>";
             str += "</span>";
+            if (level > 1) {
+                str = "LEVEL "+this.currentLevel+"<br>" + str;
+            }
             this._createHtmlPanel("intro-panel", str);
         } else {
             var offx = 4;
@@ -377,6 +385,9 @@ var Game = {
                 "",
                 "ESC or SPACE to begin"
             ];
+            if (level > 1) {
+                help.push("LEVEL "+this.currentLevel);
+            }
             for (let k of help) {
                 var str = "%b{black}%c{grey}"+k;
                 this.display.drawText(offx, offy, str);
@@ -399,7 +410,12 @@ var Game = {
                     this.waterCells.push(key);
                     return;
                 }
-                this.mapOff[key] = this.landSigil;
+                var landPerc = ROT.RNG.getPercentage();
+                landSigil = this.landSigil1;
+                if (landPerc <= 25) landSigil = this.landSigil2;
+                else if (landPerc <= 50) landSigil = this.landSigil3;
+                else if (landPerc <= 75) landSigil = this.landSigil4;
+                this.mapOff[key] = landSigil;
                 this.landCells.push(key);
                 return;
             }

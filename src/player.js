@@ -278,8 +278,8 @@ Player.prototype._showHelp = function() {
     return true;
 }
 
-Player.prototype._showIntro = function() {
-    Game.openIntro();
+Player.prototype._showIntro = function(level) {
+    Game.openIntro(level);
     Game.toast = "";
     Game.updS();
     return true;

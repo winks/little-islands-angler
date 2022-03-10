@@ -24,7 +24,7 @@ Player.prototype.getDex = function() { return this._dexterity; }
 Player.prototype.getInv = function() { return this._inventory; }
 Player.prototype.levelUp = function(e) {
     var perc = ROT.RNG.getPercentage();
-    var str = "";
+    var str = "Level Up! ";
     if (perc <= 33) {
         Game.ITEM.TOME_DEX.resolve();
         str += "You got DEX";
@@ -38,7 +38,7 @@ Player.prototype.levelUp = function(e) {
     }
     var num = 3;
     this.addItem(Game.ITEM.LURE_STD, num);
-    str += " and "+num+" lures.";
+    str += " and "+num+" "+Game.ITEM.LURE_STD.long+"s.";
     Game.toast = str;
 }
 Player.prototype.newAction = function(e) {
@@ -358,26 +358,47 @@ Player.prototype._encounterStepDex = function(enemy) {
     this._activeAction.enemy = enemy;
 
     var doneFn = function() {
-        if (this._activeAction.enemy._isPredator) {
-            Game.toast = "You killed the fish!";
-            this.newAction();
-        } else {
-            Game.toast = "You caught the fish!";
-            if (this._activeAction.enemy._isBoss) {
-                Game.removeEnemy(Game.boss);
-            }
-            this.newAction();
-        }
-
-        this.newAction();
         var rewardPerc = ROT.RNG.getPercentage();
         if (rewardPerc <= 50) {
             this.addCurrency(1);
         } else {
             this.addCurrency(2);
         }
-        Game.removeEnemy(enemy);
-        if (enemy._isBoss) Game.boss = null;
+
+        var str2 = "";
+        if (this._activeAction.enemy._isBoss) {
+            this.addCurrency(1);
+            var drop = Game._generateBoxLoot();
+            console.debug("bossloot",drop)
+            if (drop != Game.ITEM.NOTHING) {
+                drop.resolve();
+                str2 += " You find a "+drop.long+".";
+            }
+            Game.removeEnemy(Game.boss);
+            Game.boss = null;
+        } else {
+            Game.removeEnemy(this._activeAction.enemy);
+        }
+        if (this._activeAction.enemy._isPredator) {
+            var str = "You killed the fish!";
+            var rewardPerc2 = ROT.RNG.getPercentage();
+            if (rewardPerc2 <= 20) {
+                Game.ITEM.HARPOON_PLUS.resolve();
+                str += " You found a "+Game.ITEM.HARPOON_PLUS.long+".";
+            } else if (rewardPerc2 <= 40) {
+                Game.ITEM.LURE_ENH.resolve();
+                str += " You found a "+Game.ITEM.LURE_ENH.long+".";
+            } else if (rewardPerc2 <= 60) {
+                Game.ITEM.TOME_ENE.resolve(3);
+                Game.ITEM.INSTA_ENE.resolve(3);
+                str += " You got Energy.";
+            }
+            Game.toast = str+str2;
+        } else {
+            var str = "You caught the fish!";
+            Game.toast = str+str2;
+        }
+        this.newAction();
         return true;
     };
 

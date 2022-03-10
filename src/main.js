@@ -265,14 +265,7 @@ var Game = {
 
         if (this.gui) {
             var str = "shop";
-            let shopDiv = document.createElement('div');
-            shopDiv.className = 'panel shop-panel';
-            shopDiv.innerHTML = str;
-            document.body.appendChild(shopDiv);
-
-            shopDiv.style.position = "absolute";
-            shopDiv.style.top = "64px";
-            shopDiv.style.left = "64px";
+            this._createHtmlPanel("shop-panel", str)
         } else {
             var offx = 4;
             var offy = 4;
@@ -312,15 +305,7 @@ var Game = {
             str += "i to inspect a fish";
             str += "<br />"
 
-            let helpDiv = document.createElement('div');
-            helpDiv.className = 'panel help-panel';
-            helpDiv.innerHTML = str;
-            document.body.appendChild(helpDiv);
-
-            helpDiv.style.position = "absolute";
-            helpDiv.style.top = "64px";
-            helpDiv.style.left = "64px";
-
+            this._createHtmlPanel("help-panel", str);
         } else {
             var offx = 4;
             var offy = 4;
@@ -349,14 +334,7 @@ var Game = {
 
         if (this.gui) {
             var str = "intro";
-            let introDiv = document.createElement('div');
-            introDiv.className = 'panel intro-panel';
-            introDiv.innerHTML = str;
-            document.body.appendChild(introDiv);
-
-            introDiv.style.position = "absolute";
-            introDiv.style.top = "64px";
-            introDiv.style.left = "64px";
+            this._createHtmlPanel("intro-panel", str);
         } else {
             var offx = 4;
             var offy = 4;
@@ -467,28 +445,34 @@ var Game = {
                     break;
                 }
 
-                var boxPerc = ROT.RNG.getPercentage();
-                var treasure = null;
-                if (boxPerc <= 10) {
-                    treasure = Game.ITEM.LURE_STD;
-                } else if (boxPerc <= 20) {
-                    treasure = Game.ITEM.LURE_ENH;
-                } else if (boxPerc <= 30) {
-                    treasure = Game.ITEM.HARPOON_PLUS;
-                } else if (boxPerc <= 40) {
-                    treasure = Game.ITEM.LINE_STRONG;
-                } else if (boxPerc <= 50) {
-                    treasure = Game.ITEM.SUPERBERRY;
-                } else if (boxPerc <= 60) {
-                    treasure = Game.ITEM.INSTA_ENE;
-                } else {
-                    treasure = null;
-                }
+                var treasure = this._generateBoxLoot();
                 var id = "bo"+i;
                 this.ent[key].push(new Site(xyk[0], xyk[1], id, this.boxSigil, treasure));
                 break;
             }
         }
+    },
+
+    _generateBoxLoot: function() {
+        var boxPerc = ROT.RNG.getPercentage();
+        var treasure = null;
+        if (boxPerc <= 10) {
+            treasure = Game.ITEM.LURE_STD;
+        } else if (boxPerc <= 20) {
+            treasure = Game.ITEM.LURE_ENH;
+        } else if (boxPerc <= 30) {
+            treasure = Game.ITEM.HARPOON_PLUS;
+        } else if (boxPerc <= 40) {
+            treasure = Game.ITEM.LINE_STRONG;
+        } else if (boxPerc <= 50) {
+            treasure = Game.ITEM.SUPERBERRY;
+        } else if (boxPerc <= 60) {
+            treasure = Game.ITEM.INSTA_ENE;
+        } else {
+            treasure = Game.ITEM.NOTHING;
+        }
+        console.debug("Gen: "+treasure.name);
+        return treasure;
     },
 
     _generatePorts: function(landCells, waterCells) {
@@ -604,7 +588,6 @@ var Game = {
         if (this.gui) {
             for(var x=1; x<this.width-1; x++) {
                 for(var y=1; y<this.height-1; y++) {
-                    console.debug(x,y,this.voidSigil);
                     this.draw(x, y, this.voidSigil);
                 }
             }
@@ -615,6 +598,17 @@ var Game = {
                 }
             }
         }
+    },
+
+    _createHtmlPanel : function(className, str) {
+        let panelDiv = document.createElement('div');
+        panelDiv.className = 'panel '+className;
+        panelDiv.innerHTML = str;
+        document.body.appendChild(panelDiv);
+
+        panelDiv.style.position = "absolute";
+        panelDiv.style.top = (2*this.tileHeight)+"px";
+        panelDiv.style.left = (2*this.tileWidth)+"px";
     },
 
     _drawStatus: function() {
@@ -762,18 +756,18 @@ var Game = {
     }
 };
 Game.ITEM = {};
-Game.ITEM[0] =  {id:0,  name: "nothing",                                    resolve: function()  {} };
-Game.ITEM[1] =  {id:1,  name: "Tome of Strength",                           resolve: function()  { Game.player._strength += 1; } };
-Game.ITEM[2] =  {id:2,  name: "Tome of Dexterity",                          resolve: function()  { Game.player._dexterity += 1; } };
-Game.ITEM[3] =  {id:3,  name: "Tome of Energy",                             resolve: function(x) { if (!x) x = 2; Game.player._energyMax += x; } };
-Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_STD, x); } };
-Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
-Game.ITEM[13] = {id:13, name: "Rainbow Fly",                                resolve: function(x) { Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
-Game.ITEM[18] = {id:18, name: "Harpoon+", long: "",                         resolve: function(x) { Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
-Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
-Game.ITEM[30] = {id:30, name: "Superberry",                                 resolve: function(x) { Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
+Game.ITEM[0] =  {id:0,  name: "nothing", long: "nothing",                    resolve: function()  {} };
+Game.ITEM[1] =  {id:1,  name: "Tome of Strength", long: "Tome of Strength",  resolve: function()  { Game.player._strength += 1; } };
+Game.ITEM[2] =  {id:2,  name: "Tome of Dexterity", long: "Tome of Dexterity",resolve: function()  { Game.player._dexterity += 1; } };
+Game.ITEM[3] =  {id:3,  name: "Tome of Energy", long: "Tome of Energy",      resolve: function(x) { if (!x) x = 2; Game.player._energyMax += x; } };
+Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_STD, x); } };
+Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
+Game.ITEM[13] = {id:13, name: "Rainbow Fly", long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
+Game.ITEM[18] = {id:18, name: "Harpoon+", long: "Harpoon+",                 resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
+Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
+Game.ITEM[30] = {id:30, name: "Superberry",  long: "Superberry",            resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
 Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { if (!x) x = 5; Game.player.addEnergy(x); } };
-Game.ITEM[40] = {id:40, name: "Ration of Fish",                             resolve: function()  { Game.player.addCurrency(1); } };
+Game.ITEM[40] = {id:40, name: "Ration of Fish", long: "Ration of Fish",     resolve: function()  { Game.player.addCurrency(1); } };
 
 Game.ITEM.NOTHING      = Game.ITEM[0];
 Game.ITEM.TOME_STR     = Game.ITEM[1];

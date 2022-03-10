@@ -9,6 +9,7 @@ var Player = function(x, y) {
     this._inventory = [];
     this._activeAction = {};
     this._tempActiveItems = [];
+    this._lastLevelUp = "";
 
     this.addItem(Game.ITEM.LURE_STD, 5);
     this.newAction();
@@ -32,22 +33,23 @@ Player.prototype.randomMove = function() {
 }
 Player.prototype.levelUp = function(e) {
     var perc = ROT.RNG.getPercentage();
-    var str = "Level Up! ";
+    var str = "";
     if (perc <= 33) {
         Game.ITEM.TOME_DEX.resolve();
-        str += "You got DEX";
+        str += "Your dexterity has increased";
     } else if (perc <= 66) {
         Game.ITEM.TOME_STR.resolve();
-        str += "You got STR";
+        str += "Your strength has increased";
     } else {
         Game.ITEM.TOME_ENE.resolve(3);
         Game.ITEM.INSTA_ENE.resolve(3);
-        str += "You got Energy";
+        str += "Your maximum energy has increased";
     }
     var num = 3;
     this.addItem(Game.ITEM.LURE_STD, num);
-    str += " and "+num+" "+Game.ITEM.LURE_STD.long+"s.";
-    Game.toast = str;
+    str += " and you got "+num+" "+Game.ITEM.LURE_STD.long+"s as a level up bonus.";
+    //Game.toast = str;
+    this._lastLevelUp = str;
 
     // remove items that are active for one level
     console.debug("item cleanup start:",this._tempActiveItems, this._inventory);
@@ -142,7 +144,11 @@ Player.prototype.handleEvent = function(ev) {
             if (inv.item.long) name = inv.item.long;
             console.debug("BUY",code,idx,inv);
             if (this._currency >= inv.price) {
-                Game.toast = "You buy "+inv.units+" %c{white}"+name+".";
+                if (Game.gui) {
+                    Game.toast = "You buy "+inv.units+" "+name+".";
+                } else {
+                    Game.toast = "You buy "+inv.units+" %c{white}"+name+".";
+                }
                 inv.item.resolve(inv.units);
                 this._currency -= inv.price;
                 Game.updS();
@@ -283,9 +289,9 @@ Player.prototype.handleEvent = function(ev) {
     if (fi !== false) {
         var f = Game.fish[fi];
         if (f._isBoss) {
-            Game.toast = "You spot a very dangerous fish.";
+            Game.toast = "You spot a special fish.";
         } else if (f._isPredator) {
-            Game.toast = "You spot a dangerous fish.";
+            Game.toast = "You spot a predatory fish.";
         } else {
             Game.toast = "You spot a fish.";
         }

@@ -300,16 +300,16 @@ var Game = {
         this._drawPanel();
 
         if (this.gui) {
-            var str = "<span>Shop <br><br>";
+            var str = "<span><strong>Shop</strong> <br><br>";
             for (let k of Object.keys(Game.SHOP)) {
                 var inv = Game.SHOP[k];
                 var name = inv.item.name;
                 if (inv.item.long) name = inv.item.long;
                 var plural = "s";
                 if (inv.price == 1) plural = "";
-                str += k+") ";
-                str += " Buy "+inv.units;
-                str += " <span class='t-white'>"+name+"</span>";
+                str += "<span class='shop-num'>"+k+")</span> ";
+                str += " Buy";
+                str += " <span class='t-white'>"+inv.units+" "+name+"</span>";
                 str += " for <span class='t-white'>"+inv.price+"</span>";
                 str += " ration"+plural+" of fish.<br><br>";
             }
@@ -340,19 +340,26 @@ var Game = {
 
         if (this.gui) {
             var str = "<span>";
-            str += "Help (ESC or H to leave)<br><br>";
-            str += "arrow keys to move";
+            str += "<strong>Help</strong> (<code>ESC</code> or <code>H</code> to leave)<br><br>";
+            str += "Movement - <code>Arrow keys</code>";
             str += "<br />"
-            str += "space or f to catch fish";
+            str += "Catch or fight fish - <code>SPACE</code> or <code>F</code>";
             str += "<br />"
-            str += "enter to finish the level at a port";
+            str += "Eat fish for energy - <code>E</code>";
             str += "<br />"
-            str += "b to buy items at a port";
+            str += "Inspect a fish - <code>I</code>";
             str += "<br />"
-            str += "e to eat fish for energy";
+            str += "Use item - <code>1-9</code>";
             str += "<br />"
-            str += "i to inspect a fish";
+            str += "Search reed - <code>SPACE</code>";
+            str += "<br /><br />"
+
+            str += "<strong>Port</strong><br /><br />"
+            str += "Buy items - <code>B</code>, then <code>1-9</code>";
             str += "<br />"
+            str += "Pay toll and advance - <code>ENTER</code>";
+            str += "<br /><br />"
+            str += "Hover mouse over inventory for tooltips."
 
             this._createHtmlPanel("help-panel", str);
         } else {
@@ -380,18 +387,53 @@ var Game = {
         this.engine.lock();
         this._drawPanel();
         this.introOpen = true;
+        if (!level) level = 1;
 
         if (this.gui) {
-            var str = "<span>Welcome to tbf<br><br>";
-            str += "catch and kill fish, pay "+Game.volCurrencyToExit+" rations of fish at the port to progress";
-            str += "<br><br>";
-            str += "press h for help";
-            str += "<br><br>";
-            str += "ESC or SPACE to begin";
-            str += "<br>";
+            if (level == 1) {
+            var str = "<span class='intro-text'>Welcome to tbf";
+            str += "<br/><br />";
+            str += "This is about catching the biggest and rarest fish."
+            str += "<br/>";
+            str += "To get there you will need to catch a lot of small ones (Icon Fish ) first."
+            str += "<br/>";
+            str += "This will allow you to pay toll to advance levels, maintain your energy (ico) and get stronger."
+            str += "<br/>";
+            str += "Never let your energy drop to 0, else you are done."
+            str += "<br/><br />";
+
+            str += "There will be predatory fish (icon predator) on each level who will eat other fish";
+            str += "<br/>";
+            str += "if you dont kill them with your Harpoon.",
+            str += "<br />";
+            str += "There will also be a special fish (icon Miniboss) on every level with better rewards.",
+            str += "<br />";
+            str += "Search reed (Icon Reed) for extra treasure.",
+            str += "<br /><br />";
+            str += "<strong>And enjoy your time fishing!</strong>",
+            str += "<br /><br />";
+            str += "</span><span>";
+
+            str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish.";
+            str += "<br /><br />";
+            str += "Press <code>H</code> to see the help.";
+            str += "<br />";
+            str += "Press <code>ESC</code> or <code>SPACE</code> to begin.";
             str += "</span>";
-            if (level > 1) {
-                str = "LEVEL "+this.currentLevel+"<br>" + str;
+            } else {
+                str = "<span class='intro-text'>";
+                str += "<span class='t-yellow'>Congratulations!</span> You finished a level!";
+                str += "<br /><br />";
+                str += "Toll paid:"+(this.volCurrencyToExit-2)+" (Next level: "+this.volCurrencyToExit+")";
+                str += "<br /><br />";
+                str += "" + this.player._lastLevelUp;
+                str += "<br /><br />";
+                str += "To proceed to the next level press <code>SPACE</code> or <code>ESC</code>";
+                str += "<br /><br />";
+                str += "Good fishing!";
+                str += "<br /><br />";
+                str += "</span>";
+                this.player._lastLevelUp = "";
             }
             this._createHtmlPanel("intro-panel", str);
         } else {

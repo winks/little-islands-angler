@@ -80,6 +80,19 @@ var Game = {
     treeColor: "#452e0c",
     waterColor: "#06c",
 
+    tt:  {
+        "dex": "Dexterity : Helps you successfully bait the fish, but some fish may not go for your bait.",
+        "str": "Strength: Helps you reel in the fish. But careful, a strong Fish may cost you some Energy to hold on and weaken it. If it tears up your line, it steals your bait.",
+        "ene": "Energy: Needed for almost any action e.g. Angling, Fighting, or searching through reed.",
+        "cur": "Ration of fish: Eat (e) to gain energy, or use as currency at the Harbor and as toll to get to the next level.",
+
+        "lure":            "Bait: Needed to catch fish. May be lost to fish sometimes.",
+        "better-lure":     "Improved Bait: If used as bait, gives +1 Dex for angling. May be lost to fish sometimes.",
+        "rainbow-fly":     "Rainbow Fly: Special bait needed for the unique fish.",
+        "better-line":     "Stronger Line: Gives you +1 Strength on angling for the current level",
+        "harpoon-upgrade": "Harpoon Upgrade:  Gives you +1 Strength on fighting predatory fish for the current level"
+    },
+
     resize: function() {
         var elements = document.getElementsByTagName("canvas");
         if (elements.length < 1) return;
@@ -683,14 +696,25 @@ var Game = {
             var energy = this.player.getEnergy();
             if (energy < 10) energy = " "+energy;
             var str = "<span>";
+            str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-energy' />";
             str += " <span class='t-green'>"+energy+"/"+this.player.getEnergyMax()+"</span> ";
+            str += "<span class='tooltiptext'>"+this.tt["ene"]+"</span></span>";
+
+            str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-dex' />";
             str += " <span class='t-brown'>"+this.player.getDex()+"</span> ";
+            str += "<span class='tooltiptext'>"+this.tt["dex"]+"</span></span>";
+
+            str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-str' />";
             str += " <span class='t-red'>"+this.player.getStr()+"</span> ";
+            str += "<span class='tooltiptext'>"+this.tt["str"]+"</span></span>";
+
+            str += "<span class='tooltip'>";
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
             str += " <span class='t-yellow'>"+this.player.getCurrency()+"</span> ";
+            str += "<span class='tooltiptext'>"+this.tt["cur"]+"</span></span>";
 
             str += "<img src='assets/t.gif' width='100' height='32' />";
             str += " <span class='t-purple'>Level "+this.currentLevel+"</span> ";
@@ -704,10 +728,14 @@ var Game = {
                 if (i > 0) {
                     str += "<span class='t-nums'>|</span> ";
                 }
+                str += "<span class='tooltip'>";
                 str += "<span class='t-num'>["+(i+1)+"]</span> ";
                 str += "<span class='t-vol'>"+c+"x</span>";
                 var nx = inv[i].slug();
                 str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-"+nx+"' />";
+                str += "<span class='tooltiptext'>"+this.tt[inv[i].slug()]+"</span></span>";
+                str += "</span>"
+
             }
             str += "<br />"
             str += "<img src='assets/t.gif' width='9' height='32' />";
@@ -926,7 +954,7 @@ Game.ITEM[3] =  {id:3,  name: "Tome of Energy", long: "Tome of Energy",      res
 Game.ITEM[11] = {id:11, name: "Lure", long: "Standard Fishing Lure",        resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_STD, x); } };
 Game.ITEM[12] = {id:12, name: "Better Lure", long: "Better Fishing Lure",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_ENH, x); } };
 Game.ITEM[13] = {id:13, name: "Rainbow Fly", long: "Rainbow Fly",           resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LURE_BOSS, x); } };
-Game.ITEM[18] = {id:18, name: "Harpoon+", long: "Harpoon+",                 resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
+Game.ITEM[18] = {id:18, name: "Harpoon Upgrade", long: "Harpoon Upgrade",   resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.HARPOON_PLUS, x); } };
 Game.ITEM[19] = {id:19, name: "Better Line", long: "Stronger Fishing Line", resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.LINE_STRONG, x); } };
 Game.ITEM[30] = {id:30, name: "Superberry",  long: "Superberry",            resolve: function(x) { if (!x) x = 1; Game.player.addItem(Game.ITEM.SUPERBERRY, x); } };
 Game.ITEM[31] = {id:30, name: "InstaEnergy", long: "a handful of eggs",     resolve: function(x) { if (!x) x = 5; Game.player.addEnergy(x); } };

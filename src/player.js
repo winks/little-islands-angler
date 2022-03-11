@@ -54,8 +54,14 @@ Player.prototype.levelUp = function(e) {
     // remove items that are active for one level
     console.debug("item cleanup start:",this._tempActiveItems, this._inventory);
     for (var i=0; i<this._tempActiveItems.length; i++) {
-        var curIdx = this._activeItems[i];
-        this.removeItem(curIdx);
+        var curIdx = this._tempActiveItems[i];
+
+        this.removeItem(Game.ITEM[curIdx]);
+        for (var ii=0; ii<this._inventory.length; ii++) {
+            if (this._inventory[ii]._id == curIdx) {
+                this._inventory[ii].deactivate();
+            }
+        }
         console.debug("post",this._inventory);
     }
     this._tempActiveItems = [];
@@ -198,7 +204,7 @@ Player.prototype.handleEvent = function(ev) {
         console.debug("USEx",item);
         if (Game.ITEM[item._id].group > 0) {
             for (var i=0; i<this._inventory.length; i++) {
-                console.debug("USE group",item.group,"idx",i)
+                //console.debug("USE group",item.group,"idx",i)
                 if (i == idx-1) continue;
                 var oId = this._inventory[i]._id;
                 if (Game.ITEM[oId].group == Game.ITEM[item._id].group && this._inventory[i]._active) {
@@ -208,6 +214,7 @@ Player.prototype.handleEvent = function(ev) {
                     return unlock(true);
                 }
             }
+            this._tempActiveItems.push(item._id);
             item.activate();
         } else {
             item.activate();
@@ -452,13 +459,13 @@ Player.prototype._encounterStepDex = function(enemy) {
         if (this._activeAction.enemy._isPredator) {
             var str = "You killed the fish!";
             var rewardPerc2 = ROT.RNG.getPercentage();
-            if (rewardPerc2 <= 20) {
+            if (rewardPerc2 <= 10) {
                 Game.ITEM.HARPOON_PLUS.resolve();
                 str += " You found a "+Game.ITEM.HARPOON_PLUS.long+".";
-            } else if (rewardPerc2 <= 40) {
+            } else if (rewardPerc2 <= 30) {
                 Game.ITEM.LURE_ENH.resolve();
                 str += " You found a "+Game.ITEM.LURE_ENH.long+".";
-            } else if (rewardPerc2 <= 60) {
+            } else if (rewardPerc2 <= 50) {
                 Game.ITEM.TOME_ENE.resolve(3);
                 Game.ITEM.INSTA_ENE.resolve(3);
                 str += " You got Energy.";

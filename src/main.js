@@ -310,7 +310,7 @@ var Game = {
         this._drawPanel();
 
         if (this.gui) {
-            var str = "<span><strong>Shop</strong> <br><br>";
+            var str = "<div class='shop-panel-text'><span><strong>Shop</strong> <br><br>";
             for (let k of Object.keys(Game.SHOP)) {
                 var inv = Game.SHOP[k];
                 var name = inv.item.name;
@@ -323,7 +323,7 @@ var Game = {
                 str += " for <span class='t-white'>"+inv.price+"</span>";
                 str += " ration"+plural+" of fish.<br><br>";
             }
-            str += "</span>"
+            str += "</span></div>"
             this._createHtmlPanel("shop-panel", str)
         } else {
             var offx = 4;
@@ -349,7 +349,7 @@ var Game = {
         this._drawPanel();
 
         if (this.gui) {
-            var str = "<span>";
+            var str = "<div class='help-panel-text'><span>";
             str += "<strong>Help</strong> (<code>ESC</code> or <code>H</code> to leave)<br><br>";
             str += "Movement - <code>Arrow keys</code>";
             str += "<br />"
@@ -401,7 +401,7 @@ var Game = {
 
         if (this.gui) {
             if (level == 1) {
-            var str = "<span class='intro-text'>Welcome to tbf";
+            var str = "<div class='intro-panel-text'><span class='intro-text'>Welcome to tbf";
             str += "<br/><br />";
             str += "This is about catching the biggest and rarest fish."
             str += "<br/>";
@@ -422,14 +422,13 @@ var Game = {
             str += "<br /><br />";
             str += "<strong>And enjoy your time fishing!</strong>",
             str += "<br /><br />";
-            str += "</span><span>";
 
             str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish.";
             str += "<br /><br />";
             str += "Press <code>H</code> to see the help.";
             str += "<br />";
             str += "Press <code>ESC</code> or <code>SPACE</code> to begin.";
-            str += "</span>";
+            str += "</span></div>";
             } else {
                 str = "<span class='intro-text'>";
                 str += "<span class='t-yellow'>Congratulations!</span> You finished a level!";
@@ -746,8 +745,8 @@ var Game = {
         document.body.appendChild(panelDiv);
 
         panelDiv.style.position = "absolute";
-        panelDiv.style.top = (2*this.tileHeight)+"px";
-        panelDiv.style.left = (2*this.tileWidth)+"px";
+        panelDiv.style.top = Math.floor(2.7*this.tileHeight)+"px";
+        panelDiv.style.left = Math.floor(8*this.tileWidth)+"px";
     },
 
     _drawStatus: function() {
@@ -780,8 +779,8 @@ var Game = {
             str += "<span class='tooltiptext'>"+this.tt["cur"]+"</span></span>";
 
             str += "<img src='assets/t.gif' width='100' height='32' />";
-            str += " <span class='t-purple'>Level "+this.currentLevel+"</span> ";
-            str += " <span class='t-dsl'>Help: [h]</span> ";
+            str += " <div class='right'><span class='t-purple'>Level "+this.currentLevel+"</span><br>";
+            str += " <span class='t-dsl'>Help: [h]</span> </div>";
             str += "<br />"
             str += "<img src='assets/t.gif' width='8' height='32' />";
 
@@ -821,8 +820,12 @@ var Game = {
 
             str += "</span>";
 
-            let statusDiv = document.createElement('div');
-            statusDiv.className = 'status';
+            let statusDiv = document.getElementById('status');
+            if (!statusDiv || statusDiv.length < 1) {
+                statusDiv = document.createElement('div');
+                statusDiv.id = 'status';
+                statusDiv.className = 'status';
+            }
             statusDiv.innerHTML = str;
             document.body.appendChild(statusDiv);
 

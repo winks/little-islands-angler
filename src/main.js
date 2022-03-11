@@ -24,6 +24,7 @@ var Game = {
     levelFinished: false,
     gameFinished: false,
     currentLevel: 1,
+    maxLevel: 3,
 
     // general game params
     width: 54,
@@ -46,19 +47,23 @@ var Game = {
 
     // sigils
     defaultSigil: " ",
-    bossSigil: "*",
+    bossSigilLast1: "!",
+    bossSigilLast2: "?",
+    bossSigil1: "^",
     bossSigil2: "~",
     boxSigil: "$",
     doorSigil: "^",
-    fishSigil: "%",
-    fishSigil2: "=",
+    fishSigil1: "a",
+    fishSigil2: "b",
+    fishSigil3: "b",
     landSigil1: ".",
     landSigil2: ",",
     landSigil3: "-",
     landSigil4: "_",
     playerSigil: "@",
-    predatorSigil: "!",
-    predatorSigil2: "?",
+    predatorSigil1: "A",
+    predatorSigil2: "B",
+    predatorSigil3: "C",
     portSigil: "#",
     voidSigil: "/",
 
@@ -118,7 +123,6 @@ var Game = {
         } else {
             this.tileSet = document.createElement("img");
             this.tileSet.src = "assets/tiles32.png";
-            console.debug(this.tileSet);
             var iw = this.tileWidth;
             var ih = this.tileHeight;
             displayOpt = {
@@ -128,38 +132,42 @@ var Game = {
                 tileHeight: ih,
                 tileSet: this.tileSet,
                 tileMap: {
-                    ")": [0, 0],
-                    "\"": [1*iw, 0],
-                    "^": [2*iw, 0],
-                    "/": [3*iw, 0],
+                    "(": [0, 0],
+                    ")": [1*iw, 0],
+                    ">": [2*iw, 0],
+                    "<": [3*iw, 0],
 
                     "[": [4*iw, 0],
                     "]": [5*iw, 0],
                     "{": [6*iw, 0],
                     "}": [7*iw, 0],
 
-                    "(": [8*iw, 0],
+                    "\\": [8*iw, 0],
                     "/": [9*iw, 0],
                     " ": [10*iw, 0],
                     "@": [11*iw, 0],
+                    "+": [12*iw, 0],
+                    "!": [13*iw, 0],
+                    "?": [14*iw, 0],
 
                     ".": [0, 1*ih],
                     ",": [1*iw, 1*ih],
                     "-": [2*iw, 1*ih],
                     "_": [3*iw, 1*ih],
 
-                    "$": [4*iw, 1*ih],
-                    "#": [5*iw, 1*ih],
+                    "$": [4*iw, 1*ih], // schilf
+                    "#": [5*iw, 1*ih], // hafen
 
-                    "%": [6*iw, 1*ih],
-                    "!": [7*iw, 1*ih],
-                    "*": [8*iw, 1*ih],
-                    "=": [9*iw, 1*ih],
+                    "a": [6*iw, 1*ih], // fi1
+                    "A": [7*iw, 1*ih], // pr1
+                    "^": [8*iw, 1*ih], // mb1
+                    "b": [9*iw, 1*ih], // fi2
 
-                    "?": [10*iw, 1*ih],
-                    "~": [11*iw, 1*ih],
+                    "B": [10*iw, 1*ih], // pr2
+                    "~": [11*iw, 1*ih], // mb2
 
-                    "C": [12*iw, 1*ih],
+                    "c": [12*iw, 1*ih], //fi3
+                    "C": [13*iw, 1*ih], //fi3
 
                     //,"^": [103, 103]
                 },
@@ -250,16 +258,17 @@ var Game = {
     },
 
     nextLevel: function() {
-        console.debug("preparing new level");
         this.map = {};
         this.landCells = [];
         this.waterCells = [];
         for (let fi of Object.keys(this.fish)) {
             var fish = this.fish[fi];
-            this.engine._scheduler.remove(fish);
+            if (this.fish[fi]._moving) {
+                this.engine._scheduler.remove(fish);
+            }
         }
         this.fish = {};
-        if (this.boss) this.engine._scheduler.remove(this.boss);
+        if (this.boss && this.boss._moving) this.engine._scheduler.remove(this.boss);
         this.boss = null;
 
         this.ent = {};
@@ -273,14 +282,16 @@ var Game = {
     startLevel: function() {
         var scheduler = new ROT.Scheduler.Simple();
         for (let fi of Object.keys(this.fish)) {
-            scheduler.add(this.fish[fi], true);
+            if (this.fish[fi]._moving) {
+                scheduler.add(this.fish[fi], true);
+            }
         }
         scheduler.add(this.player, true);
 
         this.engine = new ROT.Engine(scheduler);
         this.engine.start();
 
-        console.debug("new level", this);
+        //console.debug("new level", this);
     },
 
     closePanel: function() {
@@ -288,7 +299,6 @@ var Game = {
         this.helpOpen = false;
         var elems = document.getElementsByClassName("panel");
         for (let el of elems) {
-            console.debug(el);
             el.remove();
         }
         this.update();
@@ -369,7 +379,7 @@ var Game = {
                 "Help (ESC or H to leave)",
                 "",
                 "arrow keys to move",
-                "<space> to catch fish ("+this.fishSigil+" "+this.predatorSigil+" "+this.bossSigil+") or search reed "+this.boxSigil,
+                "<space> to catch fish ("+this.fishSigil1+" "+this.predatorSigil1+" "+this.bossSigil1+") or search reed "+this.boxSigil,
                 "<enter> to finish the level at a port "+this.portSigil,
                 "<b> to buy items at a port",
                 "<e> to eat fish for energy",
@@ -487,7 +497,7 @@ var Game = {
         }
 
         map.create(digCallback.bind(this));
-        console.debug("map", map);
+        //console.debug("map", map);
         map.connect(digCallback.bind(this));
 
         this._generateBoxes(this.landCells, this.waterCells);
@@ -519,7 +529,20 @@ var Game = {
         var bossStats = ffs.pop();
 
         var bossId = "boss";
-        this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+        if (Game.currentLevel == Game.maxLevel) {
+            while (true) {
+                // hack: prime the possible waterCells, so it's only one possibility
+                var xyk = this._getRandPos(waterCells);
+                var rightOf = xyk[0]+1 + "," + xyk[1];
+                console.debug("BOSS pos", xyk, rightOf, (rightOf in Game.map));
+                if (rightOf in Game.map) {
+                    this.boss = this._createBeing(Fish, xyk[2], [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+                    break;
+                }
+            }
+        } else {
+            this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+        }
         this.fish[bossId] = this.boss;
 
         for (var i=0;i<this.numFish;i++) {
@@ -588,7 +611,6 @@ var Game = {
         } else {
             treasure = Game.ITEM.NOTHING;
         }
-        console.debug("Gen: "+treasure.name);
         return treasure;
     },
 
@@ -872,10 +894,10 @@ var Game = {
         if (sigil == this.playerSigil) {
             fgc = this.playerColor;
             bgc = this.waterColor;
-        } else if (sigil == this.bossSigil) {
+        } else if (sigil == this.bossSigilLast1 || sigil == this.bossSigilLast2 || sigil == this.bossSigil1 || sigil == this.bossSigil2) {
             fgc = this.bossColor;
             bgc = this.waterColor;
-        } else if (sigil == this.fishSigil) {
+        } else if (sigil == this.fishSigil1 || sigil == this.fishSigil2 || sigil == this.fishSigil3) {
             fgc = this.fishColor;
             bgc = this.waterColor;
         } else if (sigil == this.boxSigil) {
@@ -899,7 +921,6 @@ var Game = {
         if (!level) level  = 1;
         var factor = 0;
         if (level > 6) factor = Math.floor(level / 6);
-        console.debug("rfs ",level, factor);
         var baseDexLow     = 6;
         var maxRollDexLow  = 6;
         var baseStrLow     = 5;
@@ -1038,8 +1059,12 @@ var Fish = function(x, y, id, type, isBoss, isPredator, dex, str) {
     this._isBoss = false;
     this._isPredator = false;
     this._hp = 0;
+    this._moving = true;
     if (isBoss === true) {
         this._isBoss = true;
+        if (Game.currentLevel == Game.maxLevel-1) {
+            this._moving = false;
+        }
     }
     if (isPredator === true) {
         this._isPredator = true;
@@ -1166,13 +1191,17 @@ Fish.prototype.getDex = function() { return this._dexterity; }
 Fish.prototype.getX = function() { return this._x; }
 Fish.prototype.getY = function() { return this._y; }
 Fish.prototype._draw = function() {
-    var sigil = Game.fishSigil;
+    var sigil = Game.fishSigil1;
     var color = Game.fishColor;
     if (this._isBoss) {
-        sigil = Game.bossSigil;
+        sigil = Game.bossSigil1;
+        if (Game.currentLevel == Game.maxLevel) {
+            sigil = Game.bossSigilLast1;
+            Game.draw(this._x+1, this._y, Game.bossSigilLast2, color);
+        }
         color = Game.bossColor;
     } else if (this._isPredator) {
-        sigil = Game.predatorSigil;
+        sigil = Game.predatorSigil1;
         color = Game.predatorColor;
     }
     Game.draw(this._x, this._y, sigil, color);

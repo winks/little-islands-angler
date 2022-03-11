@@ -23,6 +23,20 @@ Player.prototype.getEnergyMax = function() { return this._energyMax; }
 Player.prototype.getCurrency = function() { return this._currency; }
 Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
+Player.prototype.getStrBuffs = function(isPredator) {
+    var strBuffs = 0;
+    for (var i=0; i<this._inventory.length; i++) {
+        if (this._inventory[i]._active) {
+            if (isPredator && this._inventory[i]._id == 18) {
+                strBuffs += 1;
+            }
+            if (!isPredator && this._inventory[i]._id == 19) {
+                strBuffs += 1;
+            }
+        }
+    }
+    return strBuffs;
+}
 Player.prototype.getInv = function() { return this._inventory; }
 Player.prototype.randomMove = function() {
     var xyk = Game._getRandPos(Game.waterCells);
@@ -313,7 +327,6 @@ Player.prototype._draw = function() {
 
 Player.prototype._usePort = function() {
     var cb = function(what) {
-        console.debug("A PORT");
         var str = "You try to dock at the port.";
         if (this._currency >= Game.volCurrencyToExit) {
             str += " You pay "+Game.volCurrencyToExit+" in fees."
@@ -416,6 +429,11 @@ Player.prototype._hasCorrectLure = function(fish) {
 
 Player.prototype._startEncounter = function() {
     var fi = Game.hasFishAt(this.getX(), this.getY());
+    if (fi === false && Game.currentLevel == Game.maxLevel &&
+            Game.boss.getX() == this.getX()-1 && Game.boss.getY() == this.getY()) {
+                console.debug("ooffff");
+        fi = "boss";
+    }
     if (fi !== false) {
         var f = Game.fish[fi];
         //console.debug("! "+f.s());
@@ -537,7 +555,9 @@ Player.prototype._encounterStepStr = function(perc) {
     if (hookedPerc <= perc) {
         this._activeAction.hooked = true;
         var strDiff = this.getStr() - this._activeAction.enemy.getStr();
-        console.debug("!! strDiff "+strDiff);
+        var strBuff = this.getStrBuffs(this._activeAction.enemy._isPredator);
+        strDiff += strBuff
+        console.debug("!! strDiff ",strDiff,"buffs",strBuff);
         if (strDiff >= 2) {
             console.debug("!! Success");
             this._activeAction.finished = true;
@@ -581,7 +601,9 @@ Player.prototype._encounterStepStrPred = function(perc) {
     console.debug("!!p Hit% "+hitPerc+"/"+perc);
     if (hitPerc <= perc) {
         var strDiff = this.getStr() - this._activeAction.enemy.getStr();
-        console.debug("!!p strDiff "+strDiff);
+        var strBuff = this.getStrBuffs(this._activeAction.enemy._isPredator);
+        strDiff += strBuff
+        console.debug("!!p strDiff ",strDiff,"buffs",strBuff);
 
         var rv = false;
         var damagePerc = ROT.RNG.getPercentage();

@@ -1057,10 +1057,11 @@ var Game = {
         if (!isPredator) {
             // boss
             if (numHigh > 0) {
+                baseStrHigh += 2;
                 maxRollStrHigh -= 3;
                 var dex = baseDexHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexHigh-1));
                 var str = baseStrHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrHigh-1));
-                var stats = [dex, str+2, 'high'];
+                var stats = [dex, str, 'high'];
                 rv.push(stats);
             } else {
                 maxRollStrLow -= 3;

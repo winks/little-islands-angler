@@ -481,16 +481,17 @@ Player.prototype._encounterStepDex = function(enemy) {
 
     var doneFn = function() {
         var rewardPerc = ROT.RNG.getPercentage();
-        // @TODO
-        if (rewardPerc <= 34) {
-            this.addCurrency(1);
+        var inc = Math.ceil(Game.currentLevel / 2);
+        if (rewardPerc <= 33) {
+            this.addCurrency(1+inc);
+        } else if (rewardPerc <= 66) {
+            this.addCurrency(2+inc);
         } else {
-            this.addCurrency(2);
+            this.addCurrency(3+inc);
         }
 
         var str2 = "";
         if (this._activeAction.enemy._isBoss) {
-            // @TODO
             this.addCurrency(1);
             var drop = Game._generateBoxLoot();
             console.debug("bossloot",drop)

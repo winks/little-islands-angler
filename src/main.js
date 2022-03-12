@@ -60,7 +60,8 @@ var Game = {
     landSigil2: ",",
     landSigil3: "-",
     landSigil4: "_",
-    playerSigil: "@",
+    playerSigil1: "@",
+    playerSigil2: "+",
     predatorSigil1: "A",
     predatorSigil2: "B",
     predatorSigil3: "C",
@@ -852,7 +853,7 @@ var Game = {
             }
         }
 
-        this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil,
+        this.display.draw(this.statusOffsetX, this.height+this.statusOffsetY, this.playerSigil1,
                 this.playerColor, this.bgText);
 
         var energy = this.player.getEnergy();
@@ -902,7 +903,7 @@ var Game = {
         if (fgc_ != null) fgc = fgc_;
         if (bgc_ != null) bgc = bgc_;
 
-        if (sigil == this.playerSigil) {
+        if (sigil == this.playerSigil1 || sigil == this.playerSigil2) {
             fgc = this.playerColor;
             bgc = this.waterColor;
         } else if (sigil == this.bossSigilLast1 || sigil == this.bossSigilLast2 || sigil == this.bossSigil1 || sigil == this.bossSigil2) {

@@ -21,8 +21,19 @@ Player.prototype.getY = function() { return this._y; }
 Player.prototype.getEnergy = function() { return this._energy; }
 Player.prototype.getEnergyMax = function() { return this._energyMax; }
 Player.prototype.getCurrency = function() { return this._currency; }
-Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getDex = function() { return this._dexterity; }
+Player.prototype.getDexBuffs = function(isPredator) {
+    var dexBuffs = 0;
+    for (var i=0; i<this._inventory.length; i++) {
+        if (this._inventory[i]._active) {
+            if (!isPredator && this._inventory[i]._id == 12) {
+                dexBuffs += 1;
+            }
+        }
+    }
+    return dexBuffs;
+}
+Player.prototype.getStr = function() { return this._strength; }
 Player.prototype.getStrBuffs = function(isPredator) {
     var strBuffs = 0;
     for (var i=0; i<this._inventory.length; i++) {
@@ -322,7 +333,11 @@ Player.prototype.handleEvent = function(ev) {
 }
 
 Player.prototype._draw = function() {
-    Game.draw(this._x, this._y, Game.playerSigil, Game.playerColor);
+    var sigil = Game.playerSigil1;
+    if (Game.hasFishAt(this.getX(), this.getY())) {
+        sigil = Game.playerSigil2;
+    }
+    Game.draw(this._x, this._y, sigil, Game.playerColor);
 }
 
 Player.prototype._usePort = function() {
@@ -343,7 +358,6 @@ Player.prototype._usePort = function() {
 
 Player.prototype._useShop = function() {
     var cb = function(what) {
-        console.debug("A shop");
         var str = "You shop at the port.";
         Game.openShop();
         Game.toast = str;

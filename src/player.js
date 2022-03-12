@@ -558,6 +558,7 @@ Player.prototype._encounterStepDex = function(enemy) {
         } else if (dexDiff == -2 || dexDiff == -3) {
             rv = this._encounterStepStrPred(20);
         } else {
+            // -4 and less
             console.debug("!! Fish too fast");
             Game.toast = "The fish is too fast.";
             return true;
@@ -577,6 +578,7 @@ Player.prototype._encounterStepDex = function(enemy) {
         } else if (dexDiff == -1 || dexDiff == -2) {
             rv = this._encounterStepStr(20);
         } else {
+            // -3 and less
             console.debug("!! Fish won't bite");
             Game.toast = "This fish won't bite.";
             return true;
@@ -610,7 +612,7 @@ Player.prototype._encounterStepStr = function(perc) {
             this._activeAction.hooked = true;
             this._activeAction.enemy._strength -= 1;
             console.debug("!! Weakened "+this._activeAction.enemy.s());
-            Game.toast = "The fish is hooked but you could not reel it in.";
+            Game.toast = "The fish is hooked but you could not reel it in. Keep trying.";
             return true;
         } else {
             // strDiff <= -2
@@ -619,7 +621,7 @@ Player.prototype._encounterStepStr = function(perc) {
                 this._activeAction.hooked = true;
                 this._activeAction.enemy._strength -= 1;
                 console.debug("!! Weakened "+this._activeAction.enemy.s());
-                Game.toast = "The fish is hooked but you could not reel it in.";
+                Game.toast = "The fish is hooked but you could not reel it in. Keep trying.";
                 return true;
             } else {
                 this._activeAction.hooked = false;
@@ -644,8 +646,8 @@ Player.prototype._encounterStepStr = function(perc) {
             }
         }
     } else {
-        console.debug("!! Fish too strong");
-        Game.toast = "The fish is too strong.";
+        console.debug("!! Fish didnt bite");
+        Game.toast = "The fish didn't bite. Keep trying.";
         return true;
     }
 }
@@ -692,7 +694,7 @@ Player.prototype._encounterStepStrPred = function(perc) {
         }
         return rv;
     } else {
-        Game.toast = "You miss.";
+        Game.toast = "You miss. Keep trying.";
         return true;
     }
 }

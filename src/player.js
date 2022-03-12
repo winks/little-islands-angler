@@ -201,6 +201,13 @@ Player.prototype.handleEvent = function(ev) {
         }
         return;
     } else if (Game.introOpen) {
+        if (code == "KeyH") {
+            Game.closePanel();
+            Game.introOpen = false;
+            Game.helpOpen = true;
+            Game.openHelp();
+            return unlock(true);
+        }
         if (code == "Escape" || code == "Space" || code == "Enter") {
             Game.closePanel();
             Game.introOpen = false;

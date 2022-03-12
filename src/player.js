@@ -75,7 +75,8 @@ Player.prototype.levelUp = function(e) {
         str += "Your maximum energy has increased";
     }
     this._energy = this._energyMax;
-    this.addItem(Game.ITEM.LURE_STD, 3);
+    var num = 3;
+    this.addItem(Game.ITEM.LURE_STD, num);
     str += " and you got "+num+" "+Game.ITEM.LURE_STD.long+"s as a level up bonus.";
     //Game.toast = str;
     this._lastLevelUp = str;
@@ -260,10 +261,6 @@ Player.prototype.handleEvent = function(ev) {
 
     // enter to finish level, keyCode 13
     if (code == "Enter" || code == "NumpadEnter") {
-        if (Game.currentLevel == Game.maxLevel) {
-            Game.toast = "This is the last level, find the last boss.";
-            return unlock(true);
-        }
         var rv = this._usePort();
         return unlock(rv);
     }
@@ -362,6 +359,10 @@ Player.prototype._draw = function() {
 
 Player.prototype._usePort = function() {
     var cb = function(what) {
+        if (Game.currentLevel == Game.maxLevel) {
+            Game.toast = "This is the last level, find the last boss.";
+            return true;
+        }
         var str = "You try to dock at the port.";
         if (this._currency >= Game.volCurrencyToExit) {
             str += " You pay "+Game.volCurrencyToExit+" in fees."

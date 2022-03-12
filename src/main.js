@@ -428,45 +428,45 @@ var Game = {
                 return;
             }
             if (level == 1) {
-            var str = "<div class='intro-panel-text'><span class='intro-text'>Welcome to tbf";
-            str += "<br/><br />";
-            str += "This is about catching the biggest and rarest fish - the jaguar shark."
-            str += "<br/>";
-            str += "To get there you will need to catch a lot of small ones"
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-fish' />";
-            str += "first.<br/>";
-            str += "This will allow you to pay toll to advance levels, maintain your energy"
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-energy' />";
-            str += "and get stronger.<br/>";
-            str += "Never let your energy drop to 0, else you lose."
-            str += "<br/><br />";
+                var str = "<div class='intro-panel-text intro-text'>Welcome to tbf";
+                str += "<br/><br />";
+                str += "This is about catching the biggest and rarest fish - the jaguar shark."
+                str += "<br/>";
+                str += "To get there you will need to catch a lot of small ones"
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-fish' />";
+                str += "first.<br/>";
+                str += "This will allow you to pay toll to advance levels, maintain your energy"
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-energy' />";
+                str += "and get stronger.<br/>";
+                str += "Never let your energy drop to 0, else you lose."
+                str += "<br/><br />";
 
-            str += "There will be predatory fish";
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-pred' />";
-            str += "on each level who will eat other fish";
-            str += "<br/>";
-            str += "if you dont kill them with your Harpoon.",
-            str += "<br />";
-            str += "There will also be a special fish",
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-boss' />";
-            str += "on every level with better rewards.",
-            str += "<br />";
-            str += "Search reed",
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-reed' />";
-            str += "for extra treasure.",
-            str += "<br /><br />";
-            str += "<strong>And enjoy your time fishing!</strong>",
-            str += "<br /><br />";
+                str += "There will be predatory fish";
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-pred' />";
+                str += "on each level who will eat other fish";
+                str += "<br/>";
+                str += "if you dont kill them with your Harpoon.",
+                str += "<br />";
+                str += "There will also be a special fish",
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-boss' />";
+                str += "on every level with better rewards.",
+                str += "<br />";
+                str += "Search reed",
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-reed' />";
+                str += "for extra treasure.",
+                str += "<br /><br />";
+                str += "<strong>And enjoy your time fishing!</strong>",
+                str += "<br /><br />";
 
-            str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish";
-            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
-            str += ".<br /><br />";
-            str += "Press <code>H</code> to see the help.";
-            str += "<br />";
-            str += "Press <code>ESC</code> or <code>SPACE</code> to begin.";
-            str += "</span></div>";
+                str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish";
+                str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
+                str += ".<br /><br />";
+                str += "Press <code>H</code> to see the help.";
+                str += "<br />";
+                str += "Press <code>ESC</code> or <code>SPACE</code> to begin.";
+                str += "</div>";
             } else {
-                str = "<span class='intro-text'>";
+                str = "<div class='intro-panel-text-level intro-text'>";
                 str += "<span class='t-yellow'>Congratulations!</span> You finished a level!";
                 str += "<br /><br />";
                 str += "Toll paid:"+(this.volCurrencyToExit-2)+" (Next level: "+this.volCurrencyToExit+")";
@@ -477,10 +477,10 @@ var Game = {
                 str += "<br /><br />";
                 str += "Good fishing!";
                 str += "<br /><br />";
-                str += "</span>";
+                str += "</div>";
                 this.player._lastLevelUp = "";
             }
-            this._createHtmlPanel("intro-panel", str);
+            this._createHtmlPanel("intro-panel intro-panel-level-"+this.currentLevel+"", str);
         } else {
             var offx = 4;
             var offy = 4;
@@ -1027,7 +1027,6 @@ var Game = {
         }
 
         var lx = Math.ceil(level/3.0);
-        console.debug(lx)
         if (lx <= 1) {
             levelLow = 1;
             levelHigh = 1;
@@ -1037,6 +1036,9 @@ var Game = {
         } else if (lx == 3) {
             levelLow = 2;
             levelHigh = 2;
+        } else if (lx == 4) {
+            levelLow = 2;
+            levelHigh = 3;
         } else {
             levelLow = 3;
             levelHigh = 3;

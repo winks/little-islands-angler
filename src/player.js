@@ -337,6 +337,11 @@ Player.prototype._draw = function() {
     if (Game.hasFishAt(this.getX(), this.getY())) {
         sigil = Game.playerSigil2;
     }
+    if (Game.hasFishAt(this.getX()-1, this.getY()) &&
+            Game.currentLevel == Game.maxLevel &&
+            Game.boss.getX() == this.getX()-1 && Game.boss.getY() == this.getY()) {
+        sigil = Game.playerSigil2;
+    }
     Game.draw(this._x, this._y, sigil, Game.playerColor);
 }
 
@@ -374,10 +379,10 @@ Player.prototype._showHelp = function() {
     return true;
 }
 
-Player.prototype._showIntro = function(level) {
-    Game.openIntro(level);
+Player.prototype._showIntro = function(level, endMode) {
+    Game.openIntro(level, endMode);
     Game.toast = "";
-    Game.updS();
+    if (!endMode || endMode.length < 1) Game.updS();
     return true;
 }
 
@@ -506,6 +511,11 @@ Player.prototype._encounterStepDex = function(enemy) {
         } else {
             var str = "You caught the fish!";
             Game.toast = str+str2;
+            if (Game.currentLevel == Game.maxLevel) {
+                console.debug("THE END");
+                Game.gameFinished = true;
+                Game.checkGameState();
+            }
         }
         this.newAction();
         return true;

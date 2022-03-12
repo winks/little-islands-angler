@@ -51,11 +51,13 @@ var Game = {
     bossSigilLast2: "?",
     bossSigil1: "^",
     bossSigil2: "~",
+    bossSigil3: ":",
+    bossSigil4: ";",
     boxSigil: "$",
-    doorSigil: "^",
+    doorSigil: "|",
     fishSigil1: "a",
     fishSigil2: "b",
-    fishSigil3: "b",
+    fishSigil3: "c",
     landSigil1: ".",
     landSigil2: ",",
     landSigil3: "-",
@@ -148,8 +150,8 @@ var Game = {
                     " ": [10*iw, 0],
                     "@": [11*iw, 0],
                     "+": [12*iw, 0],
-                    "!": [13*iw, 0],
-                    "?": [14*iw, 0],
+                    "!": [13*iw, 0], // bossLast1
+                    "?": [14*iw, 0], // bossLast2
 
                     ".": [0, 1*ih],
                     ",": [1*iw, 1*ih],
@@ -167,8 +169,11 @@ var Game = {
                     "B": [10*iw, 1*ih], // pr2
                     "~": [11*iw, 1*ih], // mb2
 
-                    "c": [12*iw, 1*ih], //fi3
-                    "C": [13*iw, 1*ih], //fi3
+                    "c": [12*iw, 1*ih], // fi3
+                    "C": [13*iw, 1*ih], // fi3
+
+                    ":": [14*iw, 1*ih], // mb3
+                    ";": [15*iw, 1*ih], // mb4
 
                     //,"^": [103, 103]
                 },
@@ -192,16 +197,28 @@ var Game = {
         this.player._showIntro(1);
     },
 
+    tearDown: function() {
+        this.engine.lock();
+        window.removeEventListener("keydown", this);
+        for (let fi of Object.keys(this.fish)) {
+            var fish = this.fish[fi];
+            if (this.fish[fi]._moving) {
+                this.engine._scheduler.remove(fish);
+            }
+        }
+        this.engine._scheduler.remove(this.player);
+    },
+
     checkGameState: function() {
         if (this.player.getEnergy() < 1) {
-            alert("GAME OVER");
-            Game.engine.lock();
-            window.removeEventListener("keydown", this);
+            console.debug("You lost");
+            this.player._showIntro(this.currentLevel, "gameover");
+            this.tearDown();
         }
         if (this.gameFinished) {
-            alert("YOU WON");
-            Game.engine.lock();
-            window.removeEventListener("keydown", this);
+            console.debug("Game finished");
+            this.player._showIntro(this.currentLevel, "youwon");
+            this.tearDown();
         }
         if (this.levelFinished) {
             console.debug("Level finished");
@@ -394,13 +411,24 @@ var Game = {
         }
     },
 
-    openIntro: function(level) {
+    openIntro: function(level, endMode) {
         this.engine.lock();
         this._drawPanel();
         this.introOpen = true;
         if (!level) level = 1;
 
         if (this.gui) {
+            if (endMode == "youwon") {
+                var str = "<div class='intro-panel-text'><span class='intro-text'>You won!";
+                str += "</span></div>";
+                this._createHtmlPanel("intro-panel", str);
+                return;
+            } else if (endMode == "gameover") {
+                var str = "<div class='intro-panel-text'><span class='intro-text'>You lost!";
+                str += "</span></div>";
+                this._createHtmlPanel("intro-panel", str);
+                return;
+            }
             if (level == 1) {
             var str = "<div class='intro-panel-text'><span class='intro-text'>Welcome to tbf";
             str += "<br/><br />";

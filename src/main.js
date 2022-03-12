@@ -428,7 +428,8 @@ var Game = {
                 return;
             }
             if (level == 1) {
-                var str = "<div class='intro-panel-text intro-text-level-1'>Welcome to tbf";
+                var str = "<div class='intro-panel-text intro-text-level-1'>";
+                str += "Welcome to <span class='t-yellow'>Little Islands Angler</span>!";
                 str += "<br/><br />";
                 str += "This is about catching the biggest and rarest fish - the jaguar shark."
                 str += "<br/>";
@@ -485,7 +486,7 @@ var Game = {
             var offx = 4;
             var offy = 4;
             var help = [
-                "Welcome to tbf",
+                "Welcome to Little Islands Angler",
                 "",
                 "catch and kill fish, pay "+Game.volCurrencyToExit+" rations of fish at the port to progress",
                 "",

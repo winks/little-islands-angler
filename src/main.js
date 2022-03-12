@@ -1064,10 +1064,11 @@ var Game = {
                 var stats = [dex, str, 'high'];
                 rv.push(stats);
             } else {
+                baseStrLow += 2;
                 maxRollStrLow -= 3;
                 var dex = baseDexLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexLow-1));
                 var str = baseStrLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrLow-1));
-                var stats = [dex, str+2, 'low'];
+                var stats = [dex, str, 'low'];
                 rv.push(stats);
             }
         }

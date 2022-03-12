@@ -16,6 +16,7 @@ var Player = function(x, y) {
     //this.addItem(Game.ITEM.LURE_BOSS, 1);
     //this.addItem(Game.ITEM.LINE_STRONG, 1);
     //this.addItem(Game.ITEM.HARPOON_PLUS, 1);
+    this._inventory[0].activate();
     this.newAction();
     this._draw();
 };
@@ -483,12 +484,13 @@ Player.prototype._encounterStepDex = function(enemy) {
         var rewardPerc = ROT.RNG.getPercentage();
         var inc = Math.ceil(Game.currentLevel / 2);
         if (rewardPerc <= 33) {
-            this.addCurrency(1+inc);
+            inc +=0;
         } else if (rewardPerc <= 66) {
-            this.addCurrency(2+inc);
+            inc +=1;
         } else {
-            this.addCurrency(3+inc);
+            inc +=2;
         }
+        this.addCurrency(inc);
 
         var str2 = "";
         if (this._activeAction.enemy._isBoss) {

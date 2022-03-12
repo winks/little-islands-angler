@@ -133,6 +133,8 @@
         }
         code {
             color: dodgerblue;
+            font-family: 'inconsolata', monospace;
+            font-weight: bold;
         }
         img.icon {
             background-image: url('assets/tiles32.png');
@@ -223,8 +225,16 @@
             visibility: visible;
             opacity: 1;
         }
+        #main {
+            margin: auto;
+            width: 1728px;
+        }
+        #main2 {
+            width: 1728px;
+            position: relative;
+        }
     </style
-    <body></body>
+    <body><div id="main"><div id="main2"></div></body>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
             Game.init();

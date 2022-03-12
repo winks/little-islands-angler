@@ -94,6 +94,12 @@ var Game = {
         "harpoon-upgrade": "Harpoon Upgrade:  Gives you +1 Strength on fighting predatory fish for the current level"
     },
 
+    parent: function() {
+        var gameParent = document.getElementById('main2');
+        if (!gameParent) gameParent = document.body;
+        return gameParent;
+    },
+
     resize: function() {
         var elements = document.getElementsByTagName("canvas");
         if (elements.length < 1) return;
@@ -181,7 +187,7 @@ var Game = {
         }
         
         this.display = new ROT.Display(displayOpt);
-        document.body.appendChild(this.display.getContainer());
+        this.parent().appendChild(this.display.getContainer());
         
         if (this.gui) {
             //this.resize();
@@ -779,7 +785,7 @@ var Game = {
         let panelDiv = document.createElement('div');
         panelDiv.className = 'panel '+className;
         panelDiv.innerHTML = str;
-        document.body.appendChild(panelDiv);
+        this.parent().appendChild(panelDiv);
 
         panelDiv.style.position = "absolute";
         panelDiv.style.top = Math.floor(2.7*this.tileHeight)+"px";
@@ -817,7 +823,7 @@ var Game = {
 
             str += "<img src='assets/t.gif' width='100' height='32' />";
             str += " <div class='right'><span class='t-purple'>Level "+this.currentLevel+"</span><br>";
-            str += " <span class='t-dsl'>Help: [h]</span> </div>";
+            str += " <span class='t-dsl'>Help: <code>H</code></span> </div>";
             str += "<br />"
             str += "<img src='assets/t.gif' width='8' height='32' />";
 
@@ -864,7 +870,7 @@ var Game = {
                 statusDiv.className = 'status';
             }
             statusDiv.innerHTML = str;
-            document.body.appendChild(statusDiv);
+            this.parent().appendChild(statusDiv);
 
             var ccc = cc[0];
             statusDiv.style.position = "absolute";

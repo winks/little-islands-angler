@@ -249,6 +249,10 @@ Player.prototype.handleEvent = function(ev) {
 
     // enter to finish level, keyCode 13
     if (code == "Enter" || code == "NumpadEnter") {
+        if (Game.currentLevel == Game.maxLevel) {
+            Game.toast = "This is the last level, find the last boss.";
+            return unlock(true);
+        }
         var rv = this._usePort();
         return unlock(rv);
     }

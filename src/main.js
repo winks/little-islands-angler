@@ -24,7 +24,7 @@ var Game = {
     levelFinished: false,
     gameFinished: false,
     currentLevel: 1,
-    maxLevel: 3,
+    maxLevel: 10,
 
     // general game params
     width: 54,
@@ -470,8 +470,9 @@ var Game = {
             str += "<strong>And enjoy your time fishing!</strong>",
             str += "<br /><br />";
 
-            str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish.";
-            str += "<br /><br />";
+            str += "Toll after the first level will be "+Game.volCurrencyToExit+" rations of fish";
+            str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-ration' />";
+            str += ".<br /><br />";
             str += "Press <code>H</code> to see the help.";
             str += "<br />";
             str += "Press <code>ESC</code> or <code>SPACE</code> to begin.";

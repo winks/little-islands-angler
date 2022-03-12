@@ -5,13 +5,17 @@ var Player = function(x, y) {
     this._energyMax = 30;
     this._strength = 10;
     this._dexterity = 10;
-    this._currency = 20;
+    this._currency = 0;
     this._inventory = [];
     this._activeAction = {};
     this._tempActiveItems = [];
     this._lastLevelUp = "";
 
     this.addItem(Game.ITEM.LURE_STD, 5);
+    //this.addItem(Game.ITEM.LURE_ENH, 1);
+    //this.addItem(Game.ITEM.LURE_BOSS, 1);
+    //this.addItem(Game.ITEM.LINE_STRONG, 1);
+    //this.addItem(Game.ITEM.HARPOON_PLUS, 1);
     this.newAction();
     this._draw();
 };
@@ -70,6 +74,7 @@ Player.prototype.levelUp = function(e) {
         Game.ITEM.INSTA_ENE.resolve(3);
         str += "Your maximum energy has increased";
     }
+    this._energy = this._energyMax;
     var num = 3;
     this.addItem(Game.ITEM.LURE_STD, num);
     str += " and you got "+num+" "+Game.ITEM.LURE_STD.long+"s as a level up bonus.";
@@ -476,7 +481,8 @@ Player.prototype._encounterStepDex = function(enemy) {
 
     var doneFn = function() {
         var rewardPerc = ROT.RNG.getPercentage();
-        if (rewardPerc <= 50) {
+        // @TODO
+        if (rewardPerc <= 34) {
             this.addCurrency(1);
         } else {
             this.addCurrency(2);
@@ -484,6 +490,7 @@ Player.prototype._encounterStepDex = function(enemy) {
 
         var str2 = "";
         if (this._activeAction.enemy._isBoss) {
+            // @TODO
             this.addCurrency(1);
             var drop = Game._generateBoxLoot();
             console.debug("bossloot",drop)

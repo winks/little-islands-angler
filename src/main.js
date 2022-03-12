@@ -53,6 +53,11 @@ var Game = {
     bossSigil2: "~",
     bossSigil3: ":",
     bossSigil4: ";",
+    bossSigil5: "*",
+    bossSigil6: "'",
+    bossSigil7: "\"",
+    bossSigil8: "`",
+    bossSigil9: "´",
     boxSigil: "$",
     doorSigil: "|",
     fishSigil1: "a",
@@ -148,32 +153,37 @@ var Game = {
                     "\\": [8*iw, 0],
                     "/": [9*iw, 0],
                     " ": [10*iw, 0],
-                    "@": [11*iw, 0],
-                    "+": [12*iw, 0],
-                    "!": [13*iw, 0], // bossLast1
-                    "?": [14*iw, 0], // bossLast2
 
-                    ".": [0, 1*ih],
-                    ",": [1*iw, 1*ih],
-                    "-": [2*iw, 1*ih],
-                    "_": [3*iw, 1*ih],
+                    // schiff + land
+                    "@": [0*iw, 1*ih],
+                    "+": [1*iw, 1*ih],
+                    "$": [2*iw, 1*ih], // schilf
+                    ".": [3*iw, 1*ih],
+                    ",": [4*iw, 1*ih],
+                    "-": [5*iw, 1*ih],
+                    "_": [6*iw, 1*ih],
+                    "#": [7*iw, 1*ih], // hafen
 
-                    "$": [4*iw, 1*ih], // schilf
-                    "#": [5*iw, 1*ih], // hafen
+                    // minibosses
+                    "^": [0, 2*ih],
+                    "~": [1*iw, 2*ih],
+                    ":": [2*iw, 2*ih],
+                    ";": [3*iw, 2*ih],
+                    "*": [4*iw, 2*ih], // schilf
+                    "'": [5*iw, 2*ih], // hafen
+                    "\"": [6*iw, 2*ih], // fi1
+                    "`": [7*iw, 2*ih], // pr1
+                    "´": [8*iw, 2*ih], // mb1
 
-                    "a": [6*iw, 1*ih], // fi1
-                    "A": [7*iw, 1*ih], // pr1
-                    "^": [8*iw, 1*ih], // mb1
-                    "b": [9*iw, 1*ih], // fi2
+                    "!": [9*iw, 2*ih], // bossLast1
+                    "?": [10*iw, 2*ih], // bossLast2
 
-                    "B": [10*iw, 1*ih], // pr2
-                    "~": [11*iw, 1*ih], // mb2
-
-                    "c": [12*iw, 1*ih], // fi3
-                    "C": [13*iw, 1*ih], // fi3
-
-                    ":": [14*iw, 1*ih], // mb3
-                    ";": [15*iw, 1*ih], // mb4
+                    "a": [0*iw, 3*ih], // fi1
+                    "b": [1*iw, 3*ih], // fi2
+                    "c": [2*iw, 3*ih], // fi3
+                    "A": [3*iw, 3*ih], // pr1
+                    "B": [4*iw, 3*ih], // pr2
+                    "C": [5*iw, 3*ih], // pr3
 
                     //,"^": [103, 103]
                 },

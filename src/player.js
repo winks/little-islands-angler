@@ -71,13 +71,11 @@ Player.prototype.levelUp = function(e) {
         Game.ITEM.TOME_STR.resolve();
         str += "Your strength has increased";
     } else {
-        Game.ITEM.TOME_ENE.resolve(3);
-        Game.ITEM.INSTA_ENE.resolve(3);
+        Game.ITEM.TOME_ENE.resolve();
         str += "Your maximum energy has increased";
     }
     this._energy = this._energyMax;
-    var num = 3;
-    this.addItem(Game.ITEM.LURE_STD, num);
+    this.addItem(Game.ITEM.LURE_STD, 3);
     str += " and you got "+num+" "+Game.ITEM.LURE_STD.long+"s as a level up bonus.";
     //Game.toast = str;
     this._lastLevelUp = str;
@@ -186,7 +184,7 @@ Player.prototype.handleEvent = function(ev) {
                 } else {
                     Game.toast = "You buy "+inv.units+" %c{white}"+name+".";
                 }
-                inv.item.resolve(inv.units);
+                inv.item.resolve(false, inv.units);
                 this._currency -= inv.price;
                 Game.updS();
             } else {
@@ -517,7 +515,7 @@ Player.prototype._encounterStepDex = function(enemy) {
                 Game.ITEM.LURE_ENH.resolve();
                 str += " You found a "+Game.ITEM.LURE_ENH.long+".";
             } else if (rewardPerc2 <= 50) {
-                Game.ITEM.TOME_ENE.resolve(3);
+                Game.ITEM.TOME_ENE.resolve();
                 Game.ITEM.INSTA_ENE.resolve(3);
                 str += " You got Energy.";
             }
@@ -571,8 +569,8 @@ Player.prototype._encounterStepDex = function(enemy) {
         } else if (dexDiff == -1 || dexDiff == -2) {
             rv = this._encounterStepStr(20);
         } else {
-            console.debug("!! Fish too strong");
-            Game.toast = "The fish is too strong.";
+            console.debug("!! Fish won't bite");
+            Game.toast = "This fish won't bite.";
             return true;
         }
         if (rv && this._activeAction.finished) {
@@ -620,16 +618,26 @@ Player.prototype._encounterStepStr = function(perc) {
                 this._activeAction.finished = false;
                 console.debug("!! Fatal: bait gone");
                 Game.toast = "The fish got away with the bait.";
+
                 if (this._activeAction.enemy._isBoss) {
                     this.removeItem(Game.ITEM.LURE_BOSS, 1);
                 } else {
+                    for (var i=0; i<this._inventory.length; i++) {
+                        if (this._inventory[i]._active && this._inventory[i]._id == Game.ITEM.LURE_ENH.id) {
+                            this.removeItem(Game.ITEM.LURE_ENH, 1);
+                            this._inventory[i].deactivate();
+                            this._inventory[0].activate();
+                            return true;
+                        }
+                    }
                     this.removeItem(Game.ITEM.LURE_STD, 1);
                 }
                 return true;
             }
         }
     } else {
-        Game.toast = "The fish did not bite.";
+        console.debug("!! Fish too strong");
+        Game.toast = "The fish is too strong.";
         return true;
     }
 }

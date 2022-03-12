@@ -49,29 +49,17 @@ var Game = {
     defaultSigil: " ",
     bossSigilLast1: "!",
     bossSigilLast2: "?",
-    bossSigil1: "^",
-    bossSigil2: "~",
-    bossSigil3: ":",
-    bossSigil4: ";",
-    bossSigil5: "*",
-    bossSigil6: "'",
-    bossSigil7: "\"",
-    bossSigil8: "`",
-    bossSigil9: "´",
+    bossSigils: ["^","^","~",":",";","*","'","\"","`","´"],
     boxSigil: "$",
     doorSigil: "|",
-    fishSigil1: "a",
-    fishSigil2: "b",
-    fishSigil3: "c",
+    fishSigils: ["a","a","b","c"],
     landSigil1: ".",
     landSigil2: ",",
     landSigil3: "-",
     landSigil4: "_",
     playerSigil1: "@",
     playerSigil2: "+",
-    predatorSigil1: "A",
-    predatorSigil2: "B",
-    predatorSigil3: "C",
+    predatorSigils: ["A","B","C"],
     portSigil: "#",
     voidSigil: "/",
 
@@ -232,8 +220,8 @@ var Game = {
         }
         if (this.levelFinished) {
             console.debug("Level finished");
-            this.nextLevel();
             this.currentLevel++;
+            this.nextLevel();
             this.volCurrencyToExit = 8 + (this.currentLevel*2);
             this.player.levelUp();
             this.update();
@@ -407,7 +395,7 @@ var Game = {
                 "Help (ESC or H to leave)",
                 "",
                 "arrow keys to move",
-                "<space> to catch fish ("+this.fishSigil1+" "+this.predatorSigil1+" "+this.bossSigil1+") or search reed "+this.boxSigil,
+                "<space> to catch fish ("+this.fishSigils[0]+" "+this.predatorSigils[0]+" "+this.bossSigils[0]+") or search reed "+this.boxSigil,
                 "<enter> to finish the level at a port "+this.portSigil,
                 "<b> to buy items at a port",
                 "<e> to eat fish for energy",
@@ -442,7 +430,7 @@ var Game = {
             if (level == 1) {
             var str = "<div class='intro-panel-text'><span class='intro-text'>Welcome to tbf";
             str += "<br/><br />";
-            str += "This is about catching the biggest and rarest fish."
+            str += "This is about catching the biggest and rarest fish - the jaguar shark."
             str += "<br/>";
             str += "To get there you will need to catch a lot of small ones"
             str += "<img src='assets/t.gif' width='32' height='32' class='icon icon-fish' />";
@@ -583,26 +571,26 @@ var Game = {
                 var rightOf = xyk[0]+1 + "," + xyk[1];
                 console.debug("BOSS pos", xyk, rightOf, (rightOf in Game.map));
                 if (rightOf in Game.map) {
-                    this.boss = this._createBeing(Fish, xyk[2], [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+                    this.boss = this._createBeing(Fish, [xyk[2]], [bossId, "shark", true, false, bossStats[0], bossStats[1], Game.currentLevel]);
                     break;
                 }
             }
         } else {
-            this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true, false, bossStats[0], bossStats[1]]);
+            this.boss = this._createBeing(Fish, waterCells, [bossId, "shark", true, false, bossStats[0], bossStats[1], Game.currentLevel]);
         }
         this.fish[bossId] = this.boss;
 
         for (var i=0;i<this.numFish;i++) {
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.fishTypes.length);
             var id = "fi"+i;
-            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, false, ffs[i][0], ffs[i][1]]);
+            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, false, ffs[i][0], ffs[i][1], ffs[i][2]]);
             this.fish[id] = f;
         }
 
         for (var i=0;i<this.numPredators;i++) {
             var typeIndex = Math.floor(ROT.RNG.getUniform() * this.predTypes.length);
             var id = "pr"+i;
-            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, true, fps[i][0], fps[i][1]]);
+            var f = this._createBeing(Fish, waterCells, [id, this.fishTypes[typeIndex], false, true, fps[i][0], fps[i][1], fps[i][2]]);
             this.fish[id] = f;
         }
     },
@@ -945,11 +933,14 @@ var Game = {
         if (sigil == this.playerSigil1 || sigil == this.playerSigil2) {
             fgc = this.playerColor;
             bgc = this.waterColor;
-        } else if (sigil == this.bossSigilLast1 || sigil == this.bossSigilLast2 || sigil == this.bossSigil1 || sigil == this.bossSigil2) {
+        } else if (sigil == this.bossSigilLast1 || sigil == this.bossSigilLast2 || this.bossSigils.includes(sigil)) {
             fgc = this.bossColor;
             bgc = this.waterColor;
-        } else if (sigil == this.fishSigil1 || sigil == this.fishSigil2 || sigil == this.fishSigil3) {
+        } else if (this.fishSigils.includes(sigil)) {
             fgc = this.fishColor;
+            bgc = this.waterColor;
+        } else if (this.predatorSigils.includes(sigil)) {
+            fgc = this.predatorColor;
             bgc = this.waterColor;
         } else if (sigil == this.boxSigil) {
             fgc = this.boxColor;
@@ -1035,17 +1026,32 @@ var Game = {
 
         }
 
+        var lx = Math.ceil(level/3.0);
+        console.debug(lx)
+        if (lx <= 1) {
+            levelLow = 1;
+            levelHigh = 1;
+        } else if (lx == 2) {
+            levelLow = 1;
+            levelHigh = 2;
+        } else if (lx == 3) {
+            levelLow = 2;
+            levelHigh = 2;
+        } else {
+            levelLow = 3;
+            levelHigh = 3;
+        }
         var rv = [];
         for (var i=0; i<numLow; i++) {
             var dex = baseDexLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexLow-1));
             var str = baseStrLow + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrLow-1));
-            var stats = [dex, str, 'low'];
+            var stats = [dex, str, levelLow, 'low'];
             rv.push(stats);
         }
         for (var i=0; i<numHigh; i++) {
             var dex = baseDexHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollDexHigh-1));
             var str = baseStrHigh + 1 + Math.floor(ROT.RNG.getUniform() * (maxRollStrHigh-1));
-            var stats = [dex, str, 'high'];
+            var stats = [dex, str, levelHigh, 'high'];
             rv.push(stats);
         }
         if (!isPredator) {
@@ -1102,7 +1108,7 @@ Game.SHOP[4] = {item: Game.ITEM.LURE_STD, price: 1,  units: 3};
 Game.SHOP[5] = {item: Game.ITEM.LURE_BOSS, price: 3, units: 1};
 
 
-var Fish = function(x, y, id, type, isBoss, isPredator, dex, str) {
+var Fish = function(x, y, id, type, isBoss, isPredator, dex, str, fishLevel) {
     this._x = x;
     this._y = y;
     this._id = id;
@@ -1111,9 +1117,10 @@ var Fish = function(x, y, id, type, isBoss, isPredator, dex, str) {
     this._isPredator = false;
     this._hp = 0;
     this._moving = true;
+    this._level = fishLevel;
     if (isBoss === true) {
         this._isBoss = true;
-        if (Game.currentLevel == Game.maxLevel-1) {
+        if (Game.currentLevel == Game.maxLevel) {
             this._moving = false;
         }
     }
@@ -1242,17 +1249,17 @@ Fish.prototype.getDex = function() { return this._dexterity; }
 Fish.prototype.getX = function() { return this._x; }
 Fish.prototype.getY = function() { return this._y; }
 Fish.prototype._draw = function() {
-    var sigil = Game.fishSigil1;
+    var sigil = Game.fishSigils[this._level];
     var color = Game.fishColor;
     if (this._isBoss) {
-        sigil = Game.bossSigil1;
+        sigil = Game.bossSigils[this._level];
         if (Game.currentLevel == Game.maxLevel) {
             sigil = Game.bossSigilLast1;
             Game.draw(this._x+1, this._y, Game.bossSigilLast2, color);
         }
         color = Game.bossColor;
     } else if (this._isPredator) {
-        sigil = Game.predatorSigil1;
+        sigil = Game.predatorSigils[this._level];
         color = Game.predatorColor;
     }
     Game.draw(this._x, this._y, sigil, color);

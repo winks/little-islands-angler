@@ -417,18 +417,18 @@ var Game = {
 
         if (this.gui) {
             if (endMode == "youwon") {
-                var str = "<div class='intro-panel-text'><span class='intro-text'>You won!";
-                str += "</span></div>";
-                this._createHtmlPanel("intro-panel", str);
+                var str = "<div class='intro-panel-text'><span class='intro-text'>";
+                str += "<p>&nbsp;</p><p>&nbsp;</p>&nbsp;&nbsp;&nbsp;&nbsp;You caught the fabulous jaguar shark!</span></div>";
+                this._createHtmlPanel("intro-panel intro-panel-won", str);
                 return;
             } else if (endMode == "gameover") {
-                var str = "<div class='intro-panel-text'><span class='intro-text'>You lost!";
-                str += "</span></div>";
-                this._createHtmlPanel("intro-panel", str);
+                var str = "<div class='intro-panel-text intro-text-level-1'><span class='intro-text'>";
+                str += "&nbsp;</span></div>";
+                this._createHtmlPanel("intro-panel intro-panel-lost", str);
                 return;
             }
             if (level == 1) {
-                var str = "<div class='intro-panel-text intro-text'>Welcome to tbf";
+                var str = "<div class='intro-panel-text intro-text-level-1'>Welcome to tbf";
                 str += "<br/><br />";
                 str += "This is about catching the biggest and rarest fish - the jaguar shark."
                 str += "<br/>";
@@ -531,7 +531,7 @@ var Game = {
             this.waterCells.push(key);
         }
 
-        map.create(digCallback.bind(this));
+        map.create();
         //console.debug("map", map);
         map.connect(digCallback.bind(this));
 
